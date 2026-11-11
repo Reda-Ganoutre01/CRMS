@@ -12,26 +12,10 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "clients")
-public class Client {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, length = 50)
-    private String nom;
-
-    @Column(nullable = false, length = 50)
-    private String prenom;
+public class Client extends Utilisateur {
 
     @Column(nullable = false, unique = true, length = 20)
     private String cin;
-
-    @Column(length = 20)
-    private String telephone;
-
-    @Column(length = 100)
-    private String email;
 
     @Column(length = 200)
     private String adresse;
@@ -41,6 +25,9 @@ public class Client {
 
     @OneToMany(mappedBy = "client")
     private List<Contrat> contrats = new ArrayList<>();
+
+    @OneToMany(mappedBy = "client")
+    private List<Reservation> reservations = new ArrayList<>();
 
     public String getNomComplet() {
         return prenom + " " + nom;

@@ -39,8 +39,15 @@ public class Vehicule {
 
     private boolean disponible = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private StatutVehicule statut = StatutVehicule.DISPONIBLE;
+
     @OneToMany(mappedBy = "vehicule")
     private List<Contrat> contrats = new ArrayList<>();
+
+    @OneToMany(mappedBy = "vehicule")
+    private List<Reservation> reservations = new ArrayList<>();
 
     public String getLibelle() {
         return marque + " " + modele + " (" + immatriculation + ")";

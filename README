@@ -1,2 +1,171 @@
-Car Rental Management System
-A car rental management application for managing vehicles, customers, and rental contracts.
+# Car Rental Management System (CRMS)
+
+CRMS is a Java web application skeleton for managing car-rental customers,
+vehicles, and rental contracts. The repository currently contains the
+domain model and the initial web application entry page. It does **not yet
+contain a complete, usable rental-management application**.
+
+## Current implementation status
+
+| Area | Status | What is present |
+|---|---|---|
+| Project build | Partial | Maven WAR project targeting Java 11 |
+| Domain model | Implemented | JPA entities for `Client`, `Vehicule`, and `Contrat` |
+| Rental status | Implemented | `Statut.EN_COURS`, `TERMINE`, and `ANNULE` |
+| Entity relationships | Implemented in the model | Clients and vehicles have one-to-many contract collections; contracts reference one client and one vehicle |
+| Basic derived values | Implemented | Client full name, vehicle label, and contract billed-day calculation |
+| Persistence bootstrap | Not implemented | `JPAUtil` is empty and no `persistence.xml` or equivalent configuration exists |
+| Database schema/configuration | Not implemented | No application datasource, Hibernate properties, migrations, or seed data are present |
+| Server-side application logic | Not implemented | No servlets, controllers, services, repositories, or DAOs are present |
+| User interface | Not implemented | Only a static `index.jsp` welcome page exists |
+| Authentication/authorization | Not implemented | No application users, login, roles, or protected routes |
+| Tests | Not implemented | No `src/test` directory or test classes are present |
+
+## Implemented domain model
+
+### `Client`
+
+Mapped to the `clients` table. It contains:
+
+- Generated `id`
+- Required `nom`, `prenom`, and unique `cin`
+- Optional `telephone`, `email`, `adresse`, and `numeroPermis`
+- A one-to-many relationship to rental contracts
+- `getNomComplet()`, which returns `prenom + " " + nom`
+
+### `Vehicule`
+
+Mapped to the `vehicules` table. It contains:
+
+- Generated `id`
+- Required, unique `immatriculation`
+- Required `marque`, `modele`, and `prixJour`
+- Optional `carburant`
+- `annee`, `kilometrage`, and `disponible`
+- `disponible` defaults to `true`
+- A one-to-many relationship to rental contracts
+- `getLibelle()`, which combines the make, model, and registration number
+
+### `Contrat`
+
+Mapped to the `contrats` table. It contains:
+
+- Generated `id`
+- Required many-to-one references to a client and a vehicle
+- Required `dateDebut` and `dateFin`
+- Required `montantTotal`
+- A string-persisted `Statut`, defaulting to `EN_COURS`
+- `getNbJours()`, which returns the date difference in days with a minimum of
+  one billed day
+
+The model does not currently enforce business rules such as date ordering,
+vehicle availability, contract overlap prevention, amount calculation,
+odometer validation, or automatic status transitions.
+
+## Project structure
+
+```text
+.
+├── pom.xml
+├── src/main/java/ma/location/model/
+│   ├── Client.java
+│   ├── Contrat.java
+│   ├── Statut.java
+│   └── Vehicule.java
+├── src/main/java/ma/location/util/
+│   └── JPAUtil.java
+├── src/main/webapp/
+│   ├── index.jsp
+│   └── WEB-INF/web.xml
+└── docs/
+    ├── diagramme_car_classes.png
+    └── diagramme_car_rental.png
+```
+
+The `.smarttomcat` directory contains IDE-generated Tomcat configuration,
+including an HTTP connector on port `8080`. It is not application business
+logic and should not be treated as database or security configuration.
+
+## Technology stack
+
+- Java 11 source and target level in `pom.xml`
+- Maven WAR packaging
+- Servlet API 4.0.1 and JSP API 2.3.3, supplied by the servlet container
+- JSTL 1.2
+- Hibernate ORM 5.6.15.Final
+- MySQL Connector/J 8.0.33
+- Intended deployment target: Tomcat 9 / `javax.servlet`
+
+The generated WAR name is `location-voitures.war`.
+
+## Running the current skeleton
+
+### Prerequisites
+
+Install and configure:
+
+1. JDK 11 or a compatible Java runtime
+2. Apache Maven
+3. Apache Tomcat 9
+4. MySQL, if persistence is added
+
+### Build
+
+From the repository root:
+
+```bash
+mvn clean package
+```
+
+The WAR should be generated at:
+
+```text
+target/location-voitures.war
+```
+
+Deploy that WAR to Tomcat's `webapps` directory and start Tomcat. With the
+default Tomcat connector, the static page is available at:
+
+```text
+http://localhost:8080/location-voitures/
+```
+
+At the current stage, this displays only:
+
+```text
+Car Rental Management System!
+```
+
+The build command could not be executed in the development environment used
+to inspect this repository because the `mvn` command was not installed or
+available on `PATH`.
+
+## Not implemented yet
+
+The following work is still required before this becomes a functional
+application:
+
+1. Add JPA configuration (`persistence.xml` or an equivalent bootstrap) and
+   complete `JPAUtil`.
+2. Configure the MySQL JDBC URL, credentials, dialect, schema-generation
+   strategy, and environment-specific secrets.
+3. Add repositories/DAOs and transactions for clients, vehicles, and
+   contracts.
+4. Add services that enforce rental rules, calculate totals, check vehicle
+   availability, and update statuses.
+5. Add servlets/controllers and URL mappings.
+6. Replace the placeholder JSP with pages/forms for listing, creating,
+   editing, and deleting customers and vehicles, plus creating and managing
+   contracts.
+7. Add validation and user-visible error handling.
+8. Add authentication and authorization if multiple user roles are required.
+9. Add automated unit/integration tests and database test data.
+10. Add deployment and configuration documentation once the persistence and
+    application layers are wired.
+
+## Design references
+
+The `docs/` directory contains the existing class and rental diagrams:
+
+- [`diagramme_car_classes.png`](docs/diagramme_car_classes.png)
+- [`diagramme_car_rental.png`](docs/diagramme_car_rental.png)
