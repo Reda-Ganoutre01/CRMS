@@ -1,9 +1,15 @@
 package ma.location.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "clients")
 public class Client {
@@ -36,29 +42,7 @@ public class Client {
     @OneToMany(mappedBy = "client")
     private List<Contrat> contrats = new ArrayList<>();
 
-    public Client() {
-    }
-
     public String getNomComplet() {
         return prenom + " " + nom;
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getNom() { return nom; }
-    public void setNom(String nom) { this.nom = nom; }
-    public String getPrenom() { return prenom; }
-    public void setPrenom(String prenom) { this.prenom = prenom; }
-    public String getCin() { return cin; }
-    public void setCin(String cin) { this.cin = cin; }
-    public String getTelephone() { return telephone; }
-    public void setTelephone(String telephone) { this.telephone = telephone; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getAdresse() { return adresse; }
-    public void setAdresse(String adresse) { this.adresse = adresse; }
-    public String getNumeroPermis() { return numeroPermis; }
-    public void setNumeroPermis(String numeroPermis) { this.numeroPermis = numeroPermis; }
-    public List<Contrat> getContrats() { return contrats; }
-    public void setContrats(List<Contrat> contrats) { this.contrats = contrats; }
 }
