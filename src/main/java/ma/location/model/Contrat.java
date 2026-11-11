@@ -1,9 +1,15 @@
 package ma.location.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "contrats")
 public class Contrat {
@@ -33,9 +39,6 @@ public class Contrat {
     @Column(nullable = false, length = 20)
     private Statut statut = Statut.EN_COURS;
 
-    public Contrat() {
-    }
-
     public Contrat(Client client, Vehicule vehicule, LocalDate dateDebut, LocalDate dateFin, double montantTotal) {
         this.client = client;
         this.vehicule = vehicule;
@@ -48,19 +51,4 @@ public class Contrat {
     public long getNbJours() {
         return Math.max(1, ChronoUnit.DAYS.between(dateDebut, dateFin));
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Client getClient() { return client; }
-    public void setClient(Client client) { this.client = client; }
-    public Vehicule getVehicule() { return vehicule; }
-    public void setVehicule(Vehicule vehicule) { this.vehicule = vehicule; }
-    public LocalDate getDateDebut() { return dateDebut; }
-    public void setDateDebut(LocalDate dateDebut) { this.dateDebut = dateDebut; }
-    public LocalDate getDateFin() { return dateFin; }
-    public void setDateFin(LocalDate dateFin) { this.dateFin = dateFin; }
-    public double getMontantTotal() { return montantTotal; }
-    public void setMontantTotal(double montantTotal) { this.montantTotal = montantTotal; }
-    public Statut getStatut() { return statut; }
-    public void setStatut(Statut statut) { this.statut = statut; }
 }
