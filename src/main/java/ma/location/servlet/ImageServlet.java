@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 
 /** Envoie une photo au navigateur : /images/nom-du-fichier.jpg */
@@ -23,19 +24,35 @@ public class ImageServlet extends HttpServlet {
             return;
         }
 
-        // getName() garde seulement le nom du fichier (sécurité : pas de ../ possible)
-        File fichier = new File(ImageUtil.DOSSIER, new File(chemin).getName());
-        if (!fichier.exists()) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+        String nomFichier = new File(chemin).getName();
+
+        // 1. Chercher d'abord dans les photos uploadées (ImageUtil.DOSSIER)
+        File fichier = new File(ImageUtil.DOSSIER, nomFichier);
+        if (fichier.exists()) {
+            String type = getServletContext().getMimeType(fichier.getName());
+            if (type == null) {
+                type = "image/jpeg";
+            }
+            resp.setContentType(type);
+            resp.setHeader("Cache-Control", "max-age=86400");
+            Files.copy(fichier.toPath(), resp.getOutputStream());
             return;
         }
 
-        String type = getServletContext().getMimeType(fichier.getName());
-        if (type == null) {
-            type = "image/jpeg";
+        // 2. Chercher dans les images statiques de l'application (ex: logo.png, favicon.png)
+        try (InputStream in = getServletContext().getResourceAsStream("/images/" + nomFichier)) {
+            if (in != null) {
+                String type = getServletContext().getMimeType(nomFichier);
+                if (type == null) {
+                    type = nomFichier.endsWith(".png") ? "image/png" : "image/jpeg";
+                }
+                resp.setContentType(type);
+                resp.setHeader("Cache-Control", "max-age=86400");
+                in.transferTo(resp.getOutputStream());
+                return;
+            }
         }
-        resp.setContentType(type);
-        resp.setHeader("Cache-Control", "max-age=86400"); // le navigateur garde l'image 1 jour
-        Files.copy(fichier.toPath(), resp.getOutputStream());
+
+        resp.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 }
