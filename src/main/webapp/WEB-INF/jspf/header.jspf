@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Location de voitures</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">🚗 AutoLocation</div>
+    <nav>
+        <a href="${pageContext.request.contextPath}/accueil" class="${active == 'accueil' ? 'active' : ''}">Tableau de bord</a>
+        <a href="${pageContext.request.contextPath}/vehicules" class="${active == 'vehicules' ? 'active' : ''}">Véhicules</a>
+        <a href="${pageContext.request.contextPath}/clients" class="${active == 'clients' ? 'active' : ''}">Clients</a>
+        <a href="${pageContext.request.contextPath}/contrats" class="${active == 'contrats' ? 'active' : ''}">Contrats</a>
+    </nav>
+</header>
+<main class="container">
+    <c:if test="${not empty sessionScope.message}">
+        <div class="alert success"><c:out value="${sessionScope.message}"/></div>
+        <c:remove var="message" scope="session"/>
+    </c:if>
+    <c:if test="${not empty sessionScope.error}">
+        <div class="alert danger"><c:out value="${sessionScope.error}"/></div>
+        <c:remove var="error" scope="session"/>
+    </c:if>
+    <c:if test="${not empty requestScope.error}">
+        <div class="alert danger"><c:out value="${requestScope.error}"/></div>
+    </c:if>
