@@ -2,6 +2,8 @@ package ma.location.servlet;
 
 import ma.location.dao.VehiculeDAO;
 import ma.location.model.Vehicule;
+import ma.location.model.Role;
+import ma.location.service.ClientService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,17 +15,22 @@ import java.io.IOException;
 @WebServlet("/vehicules")
 public class VehiculeServlet extends HttpServlet {
     private VehiculeDAO dao = new VehiculeDAO();
+    private final ClientService clientService = new ClientService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (!clientService.isAuthenticated(req)) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
         String action = req.getParameter("action");
 
-        if ("new".equals(action)) {
+        if ("new".equals(action) && clientService.hasRole(req, Role.ADMIN)) {
             // Formulaire vide pour ajouter
             req.setAttribute("vehicule", new Vehicule());
             req.getRequestDispatcher("/WEB-INF/views/vehicules/form.jsp").forward(req, resp);
 
-        } else if ("edit".equals(action)) {
+        } else if ("edit".equals(action) && clientService.hasRole(req, Role.ADMIN)) {
             // Formulaire rempli pour modifier
             Long id = Long.parseLong(req.getParameter("id"));
             req.setAttribute("vehicule", dao.findById(id));
@@ -32,6 +39,7 @@ public class VehiculeServlet extends HttpServlet {
         } else {
             // Par défaut : la liste
             req.setAttribute("vehicules", dao.findAll());
+            req.setAttribute("clientView", clientService.hasRole(req, Role.USER));
             req.getRequestDispatcher("/WEB-INF/views/vehicules/list.jsp").forward(req, resp);
         }
     }
@@ -39,6 +47,14 @@ public class VehiculeServlet extends HttpServlet {
     // POST = envoyer un formulaire (enregistrer ou supprimer)
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            clientService.requireAdmin(req);
+        } catch (SecurityException exception) {
+            resp.sendRedirect(req.getContextPath() + "/accueil?error=" +
+                    java.net.URLEncoder.encode("Accès réservé à un administrateur.",
+                            java.nio.charset.StandardCharsets.UTF_8));
+            return;
+        }
         String action = req.getParameter("action");
 
         if ("delete".equals(action)) {

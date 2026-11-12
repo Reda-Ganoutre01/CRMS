@@ -6,8 +6,14 @@
 
 <div class="page-head">
     <h1>Véhicules</h1>
-    <a class="btn" href="${pageContext.request.contextPath}/vehicules?action=new">+ Ajouter un véhicule</a>
+    <c:if test="${not clientView}">
+        <a class="btn" href="${pageContext.request.contextPath}/vehicules?action=new">+ Ajouter un véhicule</a>
+    </c:if>
 </div>
+
+<c:if test="${clientView}">
+    <p class="muted">Choisissez un véhicule disponible pour commencer votre réservation.</p>
+</c:if>
 
 <table>
     <thead>
@@ -29,13 +35,22 @@
                 <span class="badge ${v.disponible ? 'ok' : 'ko'}">${v.disponible ? 'Disponible' : 'Loué'}</span>
             </td>
             <td class="actions">
-                <a class="btn small secondary" href="${pageContext.request.contextPath}/vehicules?action=edit&id=${v.id}">Modifier</a>
-                <form method="post" action="${pageContext.request.contextPath}/vehicules"
-                      onsubmit="return confirm('Supprimer ce véhicule ?');">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="id" value="${v.id}">
-                    <button class="btn small danger" type="submit">Supprimer</button>
-                </form>
+                <c:choose>
+                    <c:when test="${clientView}">
+                        <c:if test="${v.disponible}">
+                            <a class="btn small" href="${pageContext.request.contextPath}/reservations/nouvelle?vehiculeId=${v.id}">Réserver</a>
+                        </c:if>
+                    </c:when>
+                    <c:otherwise>
+                        <a class="btn small secondary" href="${pageContext.request.contextPath}/vehicules?action=edit&id=${v.id}">Modifier</a>
+                        <form method="post" action="${pageContext.request.contextPath}/vehicules"
+                              onsubmit="return confirm('Supprimer ce véhicule ?');">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="id" value="${v.id}">
+                            <button class="btn small danger" type="submit">Supprimer</button>
+                        </form>
+                    </c:otherwise>
+                </c:choose>
             </td>
         </tr>
     </c:forEach>

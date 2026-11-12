@@ -43,13 +43,18 @@ public class ReservationServlet extends HttpServlet {
             return;
         }
         if ("/mes-reservations".equals(request.getServletPath())) {
+            if (!requireClient(request, response)) return;
             showClientReservations(request, response);
             return;
         }
         if ("/reservations".equals(request.getServletPath())) {
-            clientService.requireClient(request);
+            if (!requireClient(request, response)) return;
             EntityManager em = JPAUtil.getEntityManager();
             try {
+                if (!"/nouvelle".equals(request.getPathInfo())) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
                 Long vehicleId = requiredLong(request.getParameter("vehiculeId"), "Véhicule requis.");
                 Vehicule vehicle = em.find(Vehicule.class, vehicleId);
                 if (vehicle == null) throw new IllegalArgumentException("Véhicule introuvable.");
@@ -57,7 +62,7 @@ public class ReservationServlet extends HttpServlet {
                         .getResultList();
                 request.setAttribute("vehicule", vehicle);
                 request.setAttribute("offres", offers);
-                request.getRequestDispatcher("/WEB-INF/views/reservation-form.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/reservations/form.jsp").forward(request, response);
             } finally {
                 em.close();
             }
@@ -81,8 +86,9 @@ public class ReservationServlet extends HttpServlet {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
-    private void createReservation(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        clientService.requireClient(request);
+    private void createReservation(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!requireClient(request, response)) return;
         try {
             Long clientId = clientService.currentUserId(request);
             Long vehicleId = requiredLong(request.getParameter("vehiculeId"), "Véhicule requis.");
@@ -92,17 +98,39 @@ public class ReservationServlet extends HttpServlet {
                     LocalDate.parse(request.getParameter("dateFin")));
             response.sendRedirect(request.getContextPath() + "/mes-reservations?created=" + reservation.getId());
         } catch (RuntimeException exception) {
-            redirectError(response, request, "/reservations/nouvelle", exception.getMessage());
+            showReservationFormWithError(request, response, exception.getMessage());
+        }
+    }
+
+    private void showReservationFormWithError(HttpServletRequest request,
+                                              HttpServletResponse response,
+                                              String message)
+            throws ServletException, IOException {
+        request.setAttribute("error", message == null ? "La réservation est invalide." : message);
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long vehicleId = requiredLong(request.getParameter("vehiculeId"), "Véhicule requis.");
+            Vehicule vehicle = em.find(Vehicule.class, vehicleId);
+            if (vehicle == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Véhicule introuvable.");
+                return;
+            }
+            request.setAttribute("vehicule", vehicle);
+            request.setAttribute("offres", em.createQuery(
+                            "select o from Offre o order by o.dateDebut desc", Offre.class)
+                    .getResultList());
+            request.getRequestDispatcher("/WEB-INF/views/reservations/form.jsp").forward(request, response);
+        } finally {
+            em.close();
         }
     }
 
     private void showClientReservations(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        clientService.requireClient(request);
         List<Reservation> reservations = new ReservationDAO()
                 .findByClient(clientService.currentUserId(request));
         request.setAttribute("reservations", reservations);
-        request.getRequestDispatcher("/WEB-INF/views/mes-reservations.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/reservations/liste.jsp").forward(request, response);
     }
 
     private void validateReservation(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -138,7 +166,7 @@ public class ReservationServlet extends HttpServlet {
 
     private void redirectError(HttpServletResponse response, HttpServletRequest request,
                                String path, String message) throws IOException {
-        response.sendRedirect(request.getContextPath() + path + "?error=" +
+        response.sendRedirect(request.getContextPath() + path + (path.contains("?") ? "&" : "?") + "error=" +
                 java.net.URLEncoder.encode(message == null ? "Erreur" : message,
                         java.nio.charset.StandardCharsets.UTF_8));
     }
@@ -151,6 +179,21 @@ public class ReservationServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login?error=" +
                     java.net.URLEncoder.encode("Connectez-vous avec un compte administrateur.",
                             java.nio.charset.StandardCharsets.UTF_8));
+            return false;
+        }
+    }
+
+    private boolean requireClient(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            clientService.requireClient(request);
+            return true;
+        } catch (SecurityException exception) {
+            String target = clientService.isAuthenticated(request)
+                    && clientService.hasRole(request, ma.location.model.Role.ADMIN)
+                    ? "/accueil"
+                    : "/login";
+            response.sendRedirect(request.getContextPath() + target + "?error=" +
+                    java.net.URLEncoder.encode(exception.getMessage(), java.nio.charset.StandardCharsets.UTF_8));
             return false;
         }
     }

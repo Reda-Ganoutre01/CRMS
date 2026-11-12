@@ -1,3 +1,4 @@
+<%@ page pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -11,11 +12,26 @@
     <div class="brand">🚗 AutoLocation</div>
     <nav>
         <a href="${pageContext.request.contextPath}/accueil" class="${active == 'accueil' ? 'active' : ''}">Tableau de bord</a>
-        <a href="${pageContext.request.contextPath}/vehicules" class="${active == 'vehicules' ? 'active' : ''}">Véhicules</a>
-        <a href="${pageContext.request.contextPath}/clients" class="${active == 'clients' ? 'active' : ''}">Clients</a>
-        <a href="${pageContext.request.contextPath}/contrats" class="${active == 'contrats' ? 'active' : ''}">Contrats</a>
-        <a href="${pageContext.request.contextPath}/admin/reservations" class="${active == 'reservations' ? 'active' : ''}">Réservations</a>
-        <a href="${pageContext.request.contextPath}/admin/contrats" class="${active == 'contrats-admin' ? 'active' : ''}">Gestion contrats</a>
+        <c:choose>
+            <c:when test="${sessionScope.authenticatedRole == 'ADMIN'}">
+                <a href="${pageContext.request.contextPath}/accueil" class="${active == 'accueil' ? 'active' : ''}">Tableau de bord</a>
+                <a href="${pageContext.request.contextPath}/vehicules" class="${active == 'vehicules' ? 'active' : ''}">Véhicules</a>
+                <a href="${pageContext.request.contextPath}/clients" class="${active == 'clients' ? 'active' : ''}">Clients</a>
+                <a href="${pageContext.request.contextPath}/contrats" class="${active == 'contrats' ? 'active' : ''}">Contrats</a>
+                <a href="${pageContext.request.contextPath}/admin/reservations" class="${active == 'reservations' ? 'active' : ''}">Réservations</a>
+                <a href="${pageContext.request.contextPath}/admin/contrats" class="${active == 'contrats-admin' ? 'active' : ''}">Gestion contrats</a>
+            </c:when>
+            <c:otherwise>
+                <a href="${pageContext.request.contextPath}/vehicules" class="${active == 'vehicules' ? 'active' : ''}">Véhicules</a>
+                <a href="${pageContext.request.contextPath}/mes-reservations" class="${active == 'reservations' ? 'active' : ''}">Mes réservations</a>
+            </c:otherwise>
+        </c:choose>
+        <a href="${pageContext.request.contextPath}/logout" class="logout-link" aria-label="Se déconnecter" title="Se déconnecter">
+            <svg class="logout-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M14 16l4-4-4-4M10 12h8"/>
+            </svg>
+            <span>Déconnexion</span>
+        </a>
     </nav>
 </header>
 <main class="container">

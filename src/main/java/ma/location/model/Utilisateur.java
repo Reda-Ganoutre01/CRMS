@@ -37,4 +37,8 @@ public class Utilisateur {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role = Role.USER;
+
+    public String getNomComplet() {
+        return prenom + " " + nom;
+    }
 }

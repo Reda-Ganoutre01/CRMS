@@ -25,8 +25,8 @@ public class AuthServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         switch (request.getServletPath()) {
-            case "/login" -> forward(request, response, "/WEB-INF/views/login.jsp");
-            case "/register" -> forward(request, response, "/WEB-INF/views/register.jsp");
+            case "/login" -> forward(request, response, "/WEB-INF/views/auth/login.jsp");
+            case "/register" -> forward(request, response, "/WEB-INF/views/auth/register.jsp");
             case "/logout" -> logout(request, response);
             default -> response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -71,12 +71,21 @@ public class AuthServlet extends HttpServlet {
             redirectError(response, request, "/register", "Tous les champs obligatoires doivent être renseignés.");
             return;
         }
+        if (password.length() < 8) {
+            redirectError(response, request, "/register", "Le mot de passe doit contenir au moins 8 caractères.");
+            return;
+        }
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             AuthDao dao = dao(em);
-            if (dao.findByEmail(email) != null) {
+            if (dao.findByEmail(email) != null ||
+                    !em.createQuery("select c from Client c where lower(c.cin) = lower(:cin)", Client.class)
+                            .setParameter("cin", cin)
+                            .setMaxResults(1)
+                            .getResultList()
+                            .isEmpty() == false) {
                 redirectError(response, request, "/register", "Cet email est déjà utilisé.");
                 return;
             }

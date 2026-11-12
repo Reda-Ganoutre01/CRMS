@@ -5,7 +5,13 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mes réservations | CRMS</title><script src="https://cdn.tailwindcss.com"></script></head>
 <body class="min-h-full bg-slate-950 text-slate-100">
 <main class="mx-auto max-w-6xl px-6 py-12">
-    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p class="text-sm font-semibold uppercase tracking-widest text-sky-400">Espace client</p><h1 class="mt-2 text-3xl font-bold">Mes réservations</h1><p class="mt-2 text-slate-400">Suivez l'état de vos demandes de location.</p></div><a href="${pageContext.request.contextPath}/accueil" class="text-sm font-medium text-sky-400 hover:text-sky-300">Tableau de bord →</a></div>
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div><p class="text-sm font-semibold uppercase tracking-widest text-sky-400">Espace client</p><h1 class="mt-2 text-3xl font-bold">Mes réservations</h1><p class="mt-2 text-slate-400">Suivez l'état de vos demandes de location.</p></div>
+        <div class="flex gap-4">
+            <a href="${pageContext.request.contextPath}/vehicules" class="text-sm font-medium text-sky-400 hover:text-sky-300">Voir les véhicules</a>
+            <a href="${pageContext.request.contextPath}/logout" class="text-sm font-medium text-slate-400 hover:text-white">Déconnexion</a>
+        </div>
+    </div>
     <c:if test="${param.created != null}"><p class="mb-6 rounded-lg border border-emerald-900/60 bg-emerald-950/50 px-4 py-3 text-sm text-emerald-300">Réservation enregistrée.</p></c:if>
     <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl shadow-black/20">
     <div class="overflow-x-auto"><table class="w-full text-left text-sm">
@@ -17,6 +23,12 @@
         </tr>
     </c:forEach>
 </tbody></table></div></div>
+    <c:if test="${empty reservations}">
+        <div class="mt-6 rounded-xl border border-slate-800 bg-slate-900 px-6 py-8 text-center">
+            <p class="text-slate-300">Vous n'avez encore aucune réservation.</p>
+            <a href="${pageContext.request.contextPath}/vehicules" class="mt-4 inline-block rounded-lg bg-sky-500 px-5 py-3 font-semibold text-slate-950 hover:bg-sky-400">Choisir un véhicule</a>
+        </div>
+    </c:if>
 </main>
 </body>
 </html>

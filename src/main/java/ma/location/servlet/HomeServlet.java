@@ -3,6 +3,8 @@ package ma.location.servlet;
 import ma.location.dao.ClientDAO;
 import ma.location.dao.ContratDAO;
 import ma.location.dao.VehiculeDAO;
+import ma.location.model.Role;
+import ma.location.service.ClientService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -17,9 +19,18 @@ public class HomeServlet extends HttpServlet {
     private VehiculeDAO vehiculeDAO = new VehiculeDAO();
     private ClientDAO clientDAO = new ClientDAO();
     private ContratDAO contratDAO = new ContratDAO();
+    private final ClientService clientService = new ClientService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (!clientService.isAuthenticated(req)) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        if (clientService.hasRole(req, Role.USER)) {
+            resp.sendRedirect(req.getContextPath() + "/vehicules");
+            return;
+        }
         req.setAttribute("nbVehicules", vehiculeDAO.count());
         req.setAttribute("nbDisponibles", vehiculeDAO.countDisponibles());
         req.setAttribute("nbClients", clientDAO.count());

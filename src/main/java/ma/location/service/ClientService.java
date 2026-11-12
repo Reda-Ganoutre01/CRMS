@@ -16,7 +16,7 @@ public class ClientService {
         }
         HttpSession session = request.getSession(true);
         session.setAttribute(USER_ID_ATTRIBUTE, utilisateur.getId());
-        session.setAttribute(ROLE_ATTRIBUTE, utilisateur.getRole());
+        session.setAttribute(ROLE_ATTRIBUTE, utilisateur.getRole().name());
     }
 
     public void closeSession(HttpServletRequest request) {
@@ -27,7 +27,8 @@ public class ClientService {
     public Long currentUserId(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         Object value = session == null ? null : session.getAttribute(USER_ID_ATTRIBUTE);
-        return value instanceof Long ? (Long) value : null;
+        if (value instanceof Number) return ((Number) value).longValue();
+        return null;
     }
 
     public boolean isAuthenticated(HttpServletRequest request) {

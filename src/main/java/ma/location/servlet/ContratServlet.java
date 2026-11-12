@@ -14,7 +14,7 @@ import ma.location.util.JPAUtil;
 
 import java.io.IOException;
 
-@WebServlet({"/admin/contrats/*", "/contrats"})
+@WebServlet({"/admin/contrats/*", "/contrats/*"})
 public class ContratServlet extends HttpServlet {
     private final ClientService clientService = new ClientService();
     private final ContratService contratService = new ContratService();
@@ -23,40 +23,45 @@ public class ContratServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if ("/facture".equals(request.getPathInfo())) {
+            if (!requireAdmin(request, response)) return;
+            showInvoice(request, response);
+            return;
+        }
         if ("/admin/contrats".equals(request.getServletPath())
                 && request.getPathInfo() == null) {
                 if (!requireAdmin(request, response)) return;
             request.setAttribute("derniersContrats", contratDAO.findRecent(100));
-            request.getRequestDispatcher("/WEB-INF/views/admin-contrats.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/contrats/liste.jsp").forward(request, response);
             return;
         }
-        if ("/contrats".equals(request.getServletPath())) {
+        if ("/contrats".equals(request.getServletPath()) && request.getPathInfo() == null) {
             request.setAttribute("derniersContrats", contratDAO.findRecent(100));
             request.getRequestDispatcher("/WEB-INF/views/contrats.jsp").forward(request, response);
             return;
         }
-        if ("/facture".equals(request.getPathInfo())) {
-            if (!requireAdmin(request, response)) return;
-            EntityManager em = JPAUtil.getEntityManager();
-            try {
-                Long id = requiredLong(request.getParameter("id"));
-                Contrat contrat = em.createQuery(
-                                "select c from Contrat c join fetch c.client join fetch c.vehicule where c.id = :id",
-                                Contrat.class)
-                        .setParameter("id", id)
-                        .getResultStream().findFirst().orElse(null);
-                if (contrat == null) {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "Contrat introuvable.");
-                    return;
-                }
-                request.setAttribute("contrat", contrat);
-                request.getRequestDispatcher("/WEB-INF/views/facture.jsp").forward(request, response);
-            } finally {
-                em.close();
-            }
-            return;
-        }
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
+
+    private void showInvoice(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long id = requiredLong(request.getParameter("id"));
+            Contrat contrat = em.createQuery(
+                            "select c from Contrat c join fetch c.client join fetch c.vehicule where c.id = :id",
+                            Contrat.class)
+                    .setParameter("id", id)
+                    .getResultStream().findFirst().orElse(null);
+            if (contrat == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Contrat introuvable.");
+                return;
+            }
+            request.setAttribute("contrat", contrat);
+            request.getRequestDispatcher("/WEB-INF/views/contrats/facture.jsp").forward(request, response);
+        } finally {
+            em.close();
+        }
     }
 
     @Override

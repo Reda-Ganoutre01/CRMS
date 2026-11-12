@@ -47,7 +47,7 @@
             <td>${c.dateDebut} → ${c.dateFin}</td>
             <td><fmt:formatNumber value="${c.montantTotal}" pattern="#,##0.00"/> MAD</td>
             <td>
-                <span class="badge ${c.statut == 'EN_COURS' ? 'info' : (c.statut == 'TERMINE' ? 'ok' : 'grey')}">${c.statut.libelle}</span>
+                <span class="badge ${c.statut == 'ACTIF' ? 'info' : 'ok'}">${c.statut}</span>
             </td>
         </tr>
     </c:forEach>
