@@ -4,27 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Location de voitures</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <%-- Tailwind CSS : chargé depuis Internet, rien à installer --%>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<header class="topbar">
-    <div class="brand">🚗 AutoLocation</div>
-    <nav>
-        <a href="${pageContext.request.contextPath}/accueil" class="${active == 'accueil' ? 'active' : ''}">Tableau de bord</a>
-        <a href="${pageContext.request.contextPath}/vehicules" class="${active == 'vehicules' ? 'active' : ''}">Véhicules</a>
-        <a href="${pageContext.request.contextPath}/clients" class="${active == 'clients' ? 'active' : ''}">Clients</a>
-        <a href="${pageContext.request.contextPath}/contrats" class="${active == 'contrats' ? 'active' : ''}">Contrats</a>
-    </nav>
+<body class="bg-slate-100 text-slate-800">
+
+<%-- Style commun des liens du menu --%>
+<c:set var="lien" value="rounded-md px-3 py-2 text-sm hover:bg-slate-700 hover:text-white"/>
+
+<header class="bg-slate-900 text-white">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
+        <div class="text-xl font-bold">🚗 AutoLocation</div>
+        <nav class="flex flex-wrap items-center gap-1">
+            <a href="${pageContext.request.contextPath}/vehicules" class="${lien} ${active == 'vehicules' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Véhicules</a>
+
+            <%-- Menu de l'administrateur --%>
+            <c:if test="${sessionScope.user.admin}">
+                <a href="${pageContext.request.contextPath}/accueil" class="${lien} ${active == 'accueil' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Tableau de bord</a>
+                <a href="${pageContext.request.contextPath}/clients" class="${lien} ${active == 'clients' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Clients</a>
+                <a href="${pageContext.request.contextPath}/contrats" class="${lien} ${active == 'contrats' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Contrats</a>
+            </c:if>
+
+            <%-- Menu du client connecté --%>
+            <c:if test="${not empty sessionScope.user and not sessionScope.user.admin}">
+                <a href="${pageContext.request.contextPath}/mes-commandes" class="${lien} ${active == 'commandes' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Mes commandes</a>
+            </c:if>
+
+            <%-- Connexion / déconnexion --%>
+            <c:choose>
+                <c:when test="${not empty sessionScope.user}">
+                    <span class="px-3 py-2 text-sm text-sky-300">👤 <c:out value="${sessionScope.user.nomComplet}"/></span>
+                    <a href="${pageContext.request.contextPath}/logout" class="${lien} text-slate-300">Déconnexion</a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/login" class="${lien} ${active == 'login' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Connexion</a>
+                    <a href="${pageContext.request.contextPath}/register" class="rounded-md bg-sky-600 px-3 py-2 text-sm text-white hover:bg-sky-700">Inscription</a>
+                </c:otherwise>
+            </c:choose>
+        </nav>
+    </div>
 </header>
-<main class="container">
+<main class="mx-auto min-h-[70vh] max-w-6xl px-5 py-7">
     <c:if test="${not empty sessionScope.message}">
-        <div class="alert success"><c:out value="${sessionScope.message}"/></div>
+        <div class="mb-4 rounded-lg bg-emerald-100 px-4 py-3 text-emerald-800"><c:out value="${sessionScope.message}"/></div>
         <c:remove var="message" scope="session"/>
     </c:if>
     <c:if test="${not empty sessionScope.error}">
-        <div class="alert danger"><c:out value="${sessionScope.error}"/></div>
+        <div class="mb-4 rounded-lg bg-red-100 px-4 py-3 text-red-800"><c:out value="${sessionScope.error}"/></div>
         <c:remove var="error" scope="session"/>
     </c:if>
     <c:if test="${not empty requestScope.error}">
-        <div class="alert danger"><c:out value="${requestScope.error}"/></div>
+        <div class="mb-4 rounded-lg bg-red-100 px-4 py-3 text-red-800"><c:out value="${requestScope.error}"/></div>
     </c:if>
