@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import ma.location.dao.ContratDAO;
 import ma.location.model.Contrat;
 import ma.location.service.ClientService;
 import ma.location.service.ContratService;
@@ -13,16 +14,29 @@ import ma.location.util.JPAUtil;
 
 import java.io.IOException;
 
-@WebServlet("/admin/contrats/*")
+@WebServlet({"/admin/contrats/*", "/contrats"})
 public class ContratServlet extends HttpServlet {
     private final ClientService clientService = new ClientService();
     private final ContratService contratService = new ContratService();
+    private final ContratDAO contratDAO = new ContratDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if ("/admin/contrats".equals(request.getServletPath())
+                && request.getPathInfo() == null) {
+                if (!requireAdmin(request, response)) return;
+            request.setAttribute("derniersContrats", contratDAO.findRecent(100));
+            request.getRequestDispatcher("/WEB-INF/views/admin-contrats.jsp").forward(request, response);
+            return;
+        }
+        if ("/contrats".equals(request.getServletPath())) {
+            request.setAttribute("derniersContrats", contratDAO.findRecent(100));
+            request.getRequestDispatcher("/WEB-INF/views/contrats.jsp").forward(request, response);
+            return;
+        }
         if ("/facture".equals(request.getPathInfo())) {
-            clientService.requireAdmin(request);
+            if (!requireAdmin(request, response)) return;
             EntityManager em = JPAUtil.getEntityManager();
             try {
                 Long id = requiredLong(request.getParameter("id"));
@@ -47,7 +61,7 @@ public class ContratServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        clientService.requireAdmin(request);
+        if (!requireAdmin(request, response)) return;
         try {
             if ("/demarrer".equals(request.getPathInfo())) {
                 contratService.creerDepuisReservation(requiredLong(request.getParameter("reservationId")));
@@ -69,5 +83,17 @@ public class ContratServlet extends HttpServlet {
     private Long requiredLong(String value) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException("Identifiant requis.");
         return Long.valueOf(value);
+    }
+
+    private boolean requireAdmin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            clientService.requireAdmin(request);
+            return true;
+        } catch (SecurityException exception) {
+            response.sendRedirect(request.getContextPath() + "/login?error=" +
+                    java.net.URLEncoder.encode("Connectez-vous avec un compte administrateur.",
+                            java.nio.charset.StandardCharsets.UTF_8));
+            return false;
+        }
     }
 }

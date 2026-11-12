@@ -14,6 +14,8 @@
         <a href="${pageContext.request.contextPath}/vehicules" class="${active == 'vehicules' ? 'active' : ''}">Véhicules</a>
         <a href="${pageContext.request.contextPath}/clients" class="${active == 'clients' ? 'active' : ''}">Clients</a>
         <a href="${pageContext.request.contextPath}/contrats" class="${active == 'contrats' ? 'active' : ''}">Contrats</a>
+        <a href="${pageContext.request.contextPath}/admin/reservations" class="${active == 'reservations' ? 'active' : ''}">Réservations</a>
+        <a href="${pageContext.request.contextPath}/admin/contrats" class="${active == 'contrats-admin' ? 'active' : ''}">Gestion contrats</a>
     </nav>
 </header>
 <main class="container">
