@@ -14,6 +14,7 @@ import ma.location.dao.AuthDao;
 import ma.location.model.Client;
 import ma.location.model.Role;
 import ma.location.model.Utilisateur;
+import ma.location.service.ClientService;
 import ma.location.util.JPAUtil;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.util.UUID;
 public class AuthApiServlet extends HttpServlet {
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String COOKIE_NAME = "JWT";
+    private final ClientService clientService = new ClientService();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -80,6 +82,7 @@ public class AuthApiServlet extends HttpServlet {
             }
             String token = dao.createToken(user);
             setJwtCookie(request, response, token);
+            clientService.openSession(request, user);
             write(response, 200, Map.of("type", "Cookie", "user", userView(user)));
         } finally {
             em.close();
@@ -129,6 +132,7 @@ public class AuthApiServlet extends HttpServlet {
             tx.commit();
             String token = dao.createToken(client);
             setJwtCookie(request, response, token);
+            clientService.openSession(request, client);
             write(response, 201, Map.of("type", "Cookie", "user", userView(client)));
         } catch (RuntimeException exception) {
             if (tx.isActive()) tx.rollback();
@@ -140,7 +144,7 @@ public class AuthApiServlet extends HttpServlet {
 
     private void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
         clearJwtCookie(request, response);
-        if (request.getSession(false) != null) request.getSession(false).invalidate();
+        clientService.closeSession(request);
         write(response, 200, Map.of("message", "Logged out"));
     }
 
