@@ -37,7 +37,10 @@ public class ClientService {
     public boolean hasRole(HttpServletRequest request, Role role) {
         if (role == null) return false;
         HttpSession session = request.getSession(false);
-        return session != null && role.equals(session.getAttribute(ROLE_ATTRIBUTE));
+        if (session == null) return false;
+        Object value = session.getAttribute(ROLE_ATTRIBUTE);
+        if (value instanceof Role) return role == value;
+        return value instanceof String && role.name().equalsIgnoreCase((String) value);
     }
 
     public void requireClient(HttpServletRequest request) {

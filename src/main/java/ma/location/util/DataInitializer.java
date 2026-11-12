@@ -55,13 +55,15 @@ public final class DataInitializer {
                 .getSingleResult();
     }
 
-    private static Utilisateur admin(AuthDao authDao) {
-        Utilisateur admin = new Utilisateur();
+    private static Client admin(AuthDao authDao) {
+        Client admin = new Client();
         admin.setNom("Admin");
         admin.setPrenom("Principal");
+        admin.setCin("ADMIN-001");
         admin.setEmail("admin@crms.local");
         admin.setMotDePasse(authDao.hashPassword("Admin1234!"));
         admin.setTelephone("0600000000");
+        admin.setAdresse("Administration");
         admin.setToken(token());
         admin.setRole(Role.ADMIN);
         return admin;

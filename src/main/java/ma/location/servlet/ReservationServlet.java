@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
-@WebServlet({"/reservations/*", "/mes-reservations", "/admin/reservations/valider"})
+@WebServlet({"/reservations/*", "/mes-reservations", "/admin/reservations", "/admin/reservations/valider"})
 public class ReservationServlet extends HttpServlet {
     private final ClientService clientService = new ClientService();
     private final ReservationService reservationService = new ReservationService();
@@ -28,6 +28,20 @@ public class ReservationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if ("/admin/reservations".equals(request.getServletPath())) {
+                if (!requireAdmin(request, response)) return;
+            EntityManager em = JPAUtil.getEntityManager();
+            try {
+                request.setAttribute("reservations", em.createQuery(
+                                "select r from Reservation r join fetch r.client join fetch r.vehicule " +
+                                        "order by r.id desc", Reservation.class)
+                        .getResultList());
+                request.getRequestDispatcher("/WEB-INF/views/admin-reservations.jsp").forward(request, response);
+            } finally {
+                em.close();
+            }
+            return;
+        }
         if ("/mes-reservations".equals(request.getServletPath())) {
             showClientReservations(request, response);
             return;
@@ -92,7 +106,7 @@ public class ReservationServlet extends HttpServlet {
     }
 
     private void validateReservation(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        clientService.requireAdmin(request);
+        if (!requireAdmin(request, response)) return;
         try {
             Long reservationId = requiredLong(request.getParameter("reservationId"), "Réservation requise.");
             Utilisateur admin = currentUser(request);
@@ -127,5 +141,17 @@ public class ReservationServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + path + "?error=" +
                 java.net.URLEncoder.encode(message == null ? "Erreur" : message,
                         java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private boolean requireAdmin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            clientService.requireAdmin(request);
+            return true;
+        } catch (SecurityException exception) {
+            response.sendRedirect(request.getContextPath() + "/login?error=" +
+                    java.net.URLEncoder.encode("Connectez-vous avec un compte administrateur.",
+                            java.nio.charset.StandardCharsets.UTF_8));
+            return false;
+        }
     }
 }
