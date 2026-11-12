@@ -1,0 +1,131 @@
+package ma.location.servlet;
+
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import ma.location.dao.ReservationDAO;
+import ma.location.model.Client;
+import ma.location.model.Offre;
+import ma.location.model.Reservation;
+import ma.location.model.Utilisateur;
+import ma.location.model.Vehicule;
+import ma.location.service.ClientService;
+import ma.location.service.ReservationService;
+import ma.location.util.JPAUtil;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+
+@WebServlet({"/reservations/*", "/mes-reservations", "/admin/reservations/valider"})
+public class ReservationServlet extends HttpServlet {
+    private final ClientService clientService = new ClientService();
+    private final ReservationService reservationService = new ReservationService();
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if ("/mes-reservations".equals(request.getServletPath())) {
+            showClientReservations(request, response);
+            return;
+        }
+        if ("/reservations".equals(request.getServletPath())) {
+            clientService.requireClient(request);
+            EntityManager em = JPAUtil.getEntityManager();
+            try {
+                Long vehicleId = requiredLong(request.getParameter("vehiculeId"), "Véhicule requis.");
+                Vehicule vehicle = em.find(Vehicule.class, vehicleId);
+                if (vehicle == null) throw new IllegalArgumentException("Véhicule introuvable.");
+                List<Offre> offers = em.createQuery("select o from Offre o order by o.dateDebut desc", Offre.class)
+                        .getResultList();
+                request.setAttribute("vehicule", vehicle);
+                request.setAttribute("offres", offers);
+                request.getRequestDispatcher("/WEB-INF/views/reservation-form.jsp").forward(request, response);
+            } finally {
+                em.close();
+            }
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if ("/admin/reservations/valider".equals(request.getServletPath())) {
+            validateReservation(request, response);
+            return;
+        }
+        if ("/reservations".equals(request.getServletPath())
+                && "/creer".equals(request.getPathInfo())) {
+            createReservation(request, response);
+            return;
+        }
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
+
+    private void createReservation(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        clientService.requireClient(request);
+        try {
+            Long clientId = clientService.currentUserId(request);
+            Long vehicleId = requiredLong(request.getParameter("vehiculeId"), "Véhicule requis.");
+            Long offerId = optionalLong(request.getParameter("offreId"));
+            Reservation reservation = reservationService.creer(clientId, vehicleId, offerId,
+                    LocalDate.parse(request.getParameter("dateDebut")),
+                    LocalDate.parse(request.getParameter("dateFin")));
+            response.sendRedirect(request.getContextPath() + "/mes-reservations?created=" + reservation.getId());
+        } catch (RuntimeException exception) {
+            redirectError(response, request, "/reservations/nouvelle", exception.getMessage());
+        }
+    }
+
+    private void showClientReservations(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        clientService.requireClient(request);
+        List<Reservation> reservations = new ReservationDAO()
+                .findByClient(clientService.currentUserId(request));
+        request.setAttribute("reservations", reservations);
+        request.getRequestDispatcher("/WEB-INF/views/mes-reservations.jsp").forward(request, response);
+    }
+
+    private void validateReservation(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        clientService.requireAdmin(request);
+        try {
+            Long reservationId = requiredLong(request.getParameter("reservationId"), "Réservation requise.");
+            Utilisateur admin = currentUser(request);
+            reservationService.confirmer(reservationId, admin);
+            response.sendRedirect(request.getContextPath() + "/accueil?validated=" + reservationId);
+        } catch (RuntimeException exception) {
+            redirectError(response, request, "/accueil", exception.getMessage());
+        }
+    }
+
+    private Utilisateur currentUser(HttpServletRequest request) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.find(Utilisateur.class, clientService.currentUserId(request));
+        } finally {
+            em.close();
+        }
+    }
+
+    private Long requiredLong(String value, String message) {
+        Long result = optionalLong(value);
+        if (result == null) throw new IllegalArgumentException(message);
+        return result;
+    }
+
+    private Long optionalLong(String value) {
+        return value == null || value.isBlank() ? null : Long.valueOf(value);
+    }
+
+    private void redirectError(HttpServletResponse response, HttpServletRequest request,
+                               String path, String message) throws IOException {
+        response.sendRedirect(request.getContextPath() + path + "?error=" +
+                java.net.URLEncoder.encode(message == null ? "Erreur" : message,
+                        java.nio.charset.StandardCharsets.UTF_8));
+    }
+}

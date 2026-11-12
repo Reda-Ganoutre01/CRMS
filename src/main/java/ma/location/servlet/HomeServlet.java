@@ -14,9 +14,9 @@ import java.io.IOException;
 @WebServlet("/accueil")
 public class HomeServlet extends HttpServlet {
 
-    private final VehiculeDAO vehiculeDAO = new VehiculeDAO();
-    private final ClientDAO clientDAO = new ClientDAO();
-    private final ContratDAO contratDAO = new ContratDAO();
+    private VehiculeDAO vehiculeDAO = new VehiculeDAO();
+    private ClientDAO clientDAO = new ClientDAO();
+    private ContratDAO contratDAO = new ContratDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

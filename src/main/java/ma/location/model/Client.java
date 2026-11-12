@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -24,13 +23,13 @@ public class Client extends Utilisateur {
     @Column(name = "numero_permis", length = 30)
     private String numeroPermis;
 
-    @Column(name = "date_inscription", nullable = false)
-    private LocalDate dateInscription = LocalDate.now();
-
     @OneToMany(mappedBy = "client")
     private List<Contrat> contrats = new ArrayList<>();
 
     @OneToMany(mappedBy = "client")
     private List<Reservation> reservations = new ArrayList<>();
 
+    public String getNomComplet() {
+        return prenom + " " + nom;
+    }
 }
