@@ -1,4 +1,7 @@
 </main>
-<footer class="footer">Projet JEE — Gestion de location de voitures (Servlets · JSP · JPA/Hibernate · MySQL)</footer>
+<footer class="footer">
+    <p>AutoLocation</p>
+    <p>&copy; Copyright by Reda and Youssef</p>
+</footer>
 </body>
 </html>
