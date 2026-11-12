@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Location de voitures</title>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/images/favicon.png">
     <%-- Tailwind CSS : chargé depuis Internet, rien à installer --%>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -14,7 +15,9 @@
 
 <header class="bg-slate-900 text-white">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
-        <div class="text-xl font-bold">🚗 AutoLocation</div>
+        <a href="${pageContext.request.contextPath}/accueil" class="flex items-center gap-2">
+            <img src="${pageContext.request.contextPath}/images/logo.png" alt="AutoLocation" class="h-10 w-auto rounded-lg">
+        </a>
         <nav class="flex flex-wrap items-center gap-1">
             <a href="${pageContext.request.contextPath}/vehicules" class="${lien} ${active == 'vehicules' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Véhicules</a>
 
