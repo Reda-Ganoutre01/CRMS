@@ -2,7 +2,7 @@ package ma.location.dao;
 
 import ma.location.model.Client;
 import ma.location.model.Contrat;
-import ma.location.model.Statut;
+import ma.location.model.StatutContrat;
 import ma.location.model.Vehicule;
 import ma.location.util.JPAUtil;
 
@@ -65,8 +65,8 @@ public class ContratDAO extends GenericDAO<Contrat> {
         }
     }
 
-    /** Clôture (TERMINE) ou annule (ANNULE) un contrat en cours et libère le véhicule. */
-    public void cloturer(Long id, Statut nouveauStatut) {
+    /** Clôture un contrat actif et libère le véhicule. */
+    public void cloturer(Long id, StatutContrat nouveauStatut) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -75,7 +75,7 @@ public class ContratDAO extends GenericDAO<Contrat> {
             if (contrat == null) {
                 throw new IllegalArgumentException("Contrat introuvable.");
             }
-            if (contrat.getStatut() != Statut.EN_COURS) {
+            if (contrat.getStatut() != StatutContrat.ACTIF) {
                 throw new IllegalStateException("Ce contrat est déjà clôturé.");
             }
             contrat.setStatut(nouveauStatut);
@@ -97,7 +97,7 @@ public class ContratDAO extends GenericDAO<Contrat> {
             tx.begin();
             Contrat contrat = em.find(Contrat.class, id);
             if (contrat != null) {
-                if (contrat.getStatut() == Statut.EN_COURS) {
+                if (contrat.getStatut() == StatutContrat.ACTIF) {
                     contrat.getVehicule().setDisponible(true);
                 }
                 em.remove(contrat);
@@ -115,18 +115,18 @@ public class ContratDAO extends GenericDAO<Contrat> {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             return em.createQuery("select count(c) from Contrat c where c.statut = :s", Long.class)
-                    .setParameter("s", Statut.EN_COURS).getSingleResult();
+                    .setParameter("s", StatutContrat.ACTIF).getSingleResult();
         } finally {
             em.close();
         }
     }
 
-    /** Chiffre d'affaires : somme des contrats non annulés. */
+    /** Chiffre d'affaires : somme des contrats enregistrés. */
     public double chiffreAffaires() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            Double total = em.createQuery("select sum(c.montantTotal) from Contrat c where c.statut <> :s", Double.class)
-                    .setParameter("s", Statut.ANNULE).getSingleResult();
+            Double total = em.createQuery("select sum(c.montantTotal) from Contrat c", Double.class)
+                    .getSingleResult();
             return total == null ? 0 : total;
         } finally {
             em.close();

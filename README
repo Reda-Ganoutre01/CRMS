@@ -1,5 +1,169 @@
-# 🚗 CRMS - Gestion de Location de Voitures (Jakarta EE 10)
-> **Plan d'Action & Découpage des Tâches en Binôme (Reda & Youssef)**  
-> **Consultez le fichier README.md pour la version complète avec diagrammes Gantt et formatage complet.**
+# CRMS - Car Rental Management System
 
-Voir [README.md](file:///c:/Users/bgano/OneDrive/Desktop/CRMS/README.md) pour les détails complets du plan d'action, le découpage par personne (Reda et Youssef), le planning horaire de la journée et le protocole de test final.
+CRMS is a Java/Jakarta EE application for managing clients, vehicles,
+reservations, rental contracts, offers, and authentication.
+
+## Current state
+
+The project currently contains:
+
+- JPA entities for users, clients, vehicles, contracts, reservations, and offers.
+- Generic, client, vehicle, contract, and authentication DAO classes.
+- JWT authentication endpoints under `/api/auth/*`.
+- A dashboard servlet at `/accueil`.
+- A static prototype dashboard in `index.html`.
+- Hibernate/JPA configuration and a MySQL JDBC dependency.
+
+The application is not yet a complete usable rental-management system.
+Only authentication routes and the dashboard servlet are mapped. The
+vehicle, client, contract, reservation, offer, and dashboard REST APIs still
+need to be implemented.
+
+## Missing functionality
+
+### Backend
+
+- REST CRUD endpoints for clients and vehicles.
+- REST endpoints for contracts, including start, finish, cancel, and invoice.
+- Reservation creation, modification, cancellation, confirmation, and availability checks.
+- Offer CRUD operations and active-offer filtering.
+- Dashboard statistics, revenue, recent contracts, and vehicle-usage APIs.
+- Authentication and authorization filters for protected routes.
+- Admin/client role enforcement.
+- Request validation and consistent API error responses.
+- Rental business rules:
+  - Validate rental date ordering.
+  - Prevent overlapping reservations and contracts.
+  - Check vehicle status and availability.
+  - Calculate totals on the server.
+  - Validate departure and return mileage.
+  - Keep vehicle status synchronized with contract status.
+- Unit and integration tests.
+- Production-safe database configuration and seed data.
+
+### Frontend
+
+- Replace localStorage-only data with calls to the backend API.
+- Add login, registration, logout, and authenticated-session handling.
+- Add forms and validation for clients, vehicles, reservations, contracts, and offers.
+- Add edit, delete, status-change, and detail actions.
+- Display API errors and loading states.
+- Restrict admin-only actions in the interface.
+- Connect dashboard cards and tables to live backend data.
+
+## Work division
+
+The implementation is divided between two people. Each person should work on
+their own branch and open a pull request before integration.
+
+### Person 1 - Backend and business logic
+
+Implement the server-side application:
+
+1. Create REST servlets/controllers for:
+   - `/api/clients`
+   - `/api/vehicles`
+   - `/api/reservations`
+   - `/api/contracts`
+   - `/api/offers`
+   - `/api/dashboard`
+2. Add missing DAOs/services and transaction boundaries.
+3. Implement validation, authorization, and role checks.
+4. Implement reservation availability and contract lifecycle rules.
+5. Fix authentication issues:
+   - Correct the duplicate-CIN registration check.
+   - Validate and configure a JWT secret of at least 32 characters.
+   - Protect authenticated and administrator routes.
+6. Standardize JSON responses and error responses.
+7. Add backend unit and integration tests.
+8. Align `persistence.xml`, `sql/location.sql`, and entity table names.
+
+**Deliverable:** a documented, tested REST API that persists data in MySQL
+and enforces the rental business rules.
+
+### Person 2 - Frontend and user experience
+
+Implement the browser application:
+
+1. Replace the sample localStorage data in `index.html` with API calls.
+2. Add login, registration, logout, and session-expiration handling.
+3. Implement client management screens:
+   - List and search clients.
+   - Create, edit, view, and delete/deactivate clients.
+4. Implement vehicle management screens:
+   - List and filter vehicles.
+   - Create, edit, view, and delete/deactivate vehicles.
+   - Change vehicle status.
+5. Implement reservation and contract screens:
+   - Create reservations.
+   - Confirm or cancel reservations.
+   - Start, finish, and cancel contracts.
+   - Display invoices and rental totals.
+6. Implement offer management screens.
+7. Connect dashboard statistics and recent-contract data to the API.
+8. Add loading states, validation messages, API error display, and
+   authorization-aware controls.
+
+**Deliverable:** a responsive frontend that uses the backend API exclusively
+and supports the complete client, vehicle, reservation, contract, and offer
+workflow.
+
+## Shared integration checklist
+
+Both people must agree on the following before frontend/backend integration:
+
+- API paths and HTTP methods documented in `docs/API.md`.
+- JSON field names and date format (`YYYY-MM-DD`).
+- Authentication mechanism: JWT in an `HttpOnly` cookie, with optional bearer
+  authentication for non-browser clients.
+- HTTP status codes and common error response structure.
+- Client and administrator permissions.
+- Vehicle and reservation status values.
+- Contract total calculation and mileage rules.
+
+Before merging:
+
+1. Start MySQL and create the database using the project configuration.
+2. Build the project with Maven:
+
+   ```bash
+   mvn clean package
+   ```
+
+3. Deploy `target/location-voitures.war` to Tomcat 10.1 or run it through the
+   IDE's Tomcat configuration.
+4. Verify authentication, CRUD operations, reservation availability, contract
+   lifecycle, dashboard statistics, and unauthorized access.
+5. Run all automated tests.
+
+## Project structure
+
+```text
+src/main/java/ma/location/
+├── dao/                 Persistence and query classes
+├── filter/              Servlet filters
+├── model/               JPA entities and enums
+├── servlet/             HTTP endpoints
+└── util/                JPA and application lifecycle utilities
+
+src/main/resources/META-INF/persistence.xml
+src/main/webapp/          JSP/static web resources
+docs/API.md               REST API contract
+sql/location.sql          Database script
+```
+
+## Configuration
+
+Configure the following values outside source control:
+
+- MySQL connection URL, username, and password.
+- `JWT_SECRET`, containing at least 32 characters.
+
+Use `.env.example` as the template for local environment configuration.
+Never commit real credentials or JWT secrets.
+
+## API documentation
+
+The expected endpoint contract is documented in
+[`docs/API.md`](docs/API.md). Update that document whenever an endpoint,
+request body, response body, permission, or status value changes.

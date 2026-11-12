@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "utilisateurs")
 public class Utilisateur {
 
@@ -34,4 +33,8 @@ public class Utilisateur {
 
     @Column(name = "token", nullable = false, length = 20)
     private String token;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role = Role.USER;
 }

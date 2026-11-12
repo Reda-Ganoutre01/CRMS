@@ -43,7 +43,7 @@ public class Contrat {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Statut statut = Statut.EN_COURS;
+    private StatutContrat statut = StatutContrat.ACTIF;
 
     public Contrat(Client client, Vehicule vehicule, LocalDate dateDebut, LocalDate dateFin, double montantTotal) {
         this.client = client;

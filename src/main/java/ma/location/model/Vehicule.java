@@ -27,6 +27,9 @@ public class Vehicule {
     @Column(nullable = false, length = 50)
     private String modele;
 
+    @Column(length = 50)
+    private String categorie;
+
     private int annee;
 
     @Column(length = 20)

@@ -85,7 +85,7 @@ public class AuthDao extends GenericDAO<Utilisateur> {
         return Jwts.builder()
                 .subject(String.valueOf(utilisateur.getId()))
                 .claim("email", utilisateur.getEmail())
-                .claim("role", utilisateur.getClass().getSimpleName().toUpperCase())
+                .claim("role", utilisateur.getRole().name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(TOKEN_LIFETIME)))
                 .signWith(getSigningKey())
