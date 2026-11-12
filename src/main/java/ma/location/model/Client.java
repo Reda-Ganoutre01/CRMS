@@ -30,6 +30,6 @@ public class Client extends Utilisateur {
     private List<Reservation> reservations = new ArrayList<>();
 
     public String getNomComplet() {
-        return prenom + " " + nom;
+        return this.getPrenom() + " " + this.getNom();
     }
 }
