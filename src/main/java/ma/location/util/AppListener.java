@@ -15,6 +15,10 @@ public class AppListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        DataInitializer.initialize();
+        try {
+            DataInitializer.initialize();
+        } catch (Exception e) {
+            System.err.println("[AppListener] Avertissement: initialisation des données ignorée: " + e.getMessage());
+        }
     }
 }

@@ -27,15 +27,15 @@ public class Vehicule {
     @Column(nullable = false, length = 50)
     private String modele;
 
-    @Column(length = 50)
-    private String categorie;
-
     private int annee;
 
     @Column(length = 20)
     private String carburant;
 
     private int kilometrage;
+
+    @Column(length = 100)
+    private String image;
 
     @Column(name = "prix_jour", nullable = false)
     private double prixJour;
