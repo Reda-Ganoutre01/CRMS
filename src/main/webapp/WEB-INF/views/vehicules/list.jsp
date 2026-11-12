@@ -7,7 +7,7 @@
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <h1 class="text-2xl font-bold text-slate-800">Véhicules</h1>
     <%-- Seul l'administrateur peut ajouter --%>
-    <c:if test="${sessionScope.user.admin}">
+    <c:if test="${sessionScope.authenticatedRole == 'ADMIN'}">
         <a class="inline-flex items-center rounded-lg font-medium text-white transition px-4 py-2 text-sm bg-sky-600 hover:bg-sky-700" href="${pageContext.request.contextPath}/vehicules?action=new">+ Ajouter un véhicule</a>
     </c:if>
 </div>
@@ -39,7 +39,7 @@
                 </p>
 
                 <%-- L'immatriculation est visible seulement par l'administrateur --%>
-                <c:if test="${sessionScope.user.admin}">
+                <c:if test="${sessionScope.authenticatedRole == 'ADMIN'}">
                     <p class="text-xs text-slate-400"><c:out value="${v.immatriculation}"/></p>
                 </c:if>
 
@@ -51,7 +51,7 @@
                 <div class="mt-4 flex flex-wrap gap-2">
                     <c:choose>
                         <%-- Administrateur : modifier et supprimer --%>
-                        <c:when test="${sessionScope.user.admin}">
+                        <c:when test="${sessionScope.authenticatedRole == 'ADMIN'}">
                             <a class="inline-flex items-center rounded-lg font-medium text-white transition px-3 py-1.5 text-xs bg-slate-500 hover:bg-slate-600" href="${pageContext.request.contextPath}/vehicules?action=edit&id=${v.id}">Modifier</a>
                             <form method="post" action="${pageContext.request.contextPath}/vehicules"
                                   onsubmit="return confirm('Supprimer ce véhicule ?');">
@@ -62,7 +62,7 @@
                         </c:when>
                         <%-- Visiteur ou client : réserver (le login est demandé si besoin) --%>
                         <c:when test="${v.disponible}">
-                            <a class="inline-flex items-center rounded-lg font-medium text-white transition px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700" href="${pageContext.request.contextPath}/reserver?vehiculeId=${v.id}">Réserver</a>
+                            <a class="inline-flex items-center rounded-lg font-medium text-white transition px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700" href="${pageContext.request.contextPath}/reservations/nouvelle?vehiculeId=${v.id}">Réserver</a>
                         </c:when>
                     </c:choose>
                 </div>

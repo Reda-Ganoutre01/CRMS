@@ -6,6 +6,15 @@
 
   <display-name>Gestion de location de voitures</display-name>
 
+  <jsp-config>
+    <jsp-property-group>
+      <url-pattern>*.jsp</url-pattern>
+      <url-pattern>*.jspf</url-pattern>
+      <page-encoding>UTF-8</page-encoding>
+      <response-encoding>UTF-8</response-encoding>
+    </jsp-property-group>
+  </jsp-config>
+
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>

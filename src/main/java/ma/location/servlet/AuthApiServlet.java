@@ -110,10 +110,18 @@ public class AuthApiServlet extends HttpServlet {
         EntityTransaction tx = em.getTransaction();
         try {
             AuthDao dao = dao(em);
-            if (dao.findByEmail(email) != null ||
-                    !em.createQuery("SELECT c FROM Client c WHERE LOWER(c.cin) = LOWER(:cin)", Client.class)
-                            .setParameter("cin", cin.trim()).setMaxResults(1).getResultList().isEmpty()) {
-                sendError(response, 409, "CONFLICT", "Email or CIN is already registered");
+            if (dao.findByEmail(email) != null) {
+                sendError(response, 409, "CONFLICT", "Email is already registered");
+                return;
+            }
+            boolean cinAlreadyUsed = !em.createQuery(
+                            "SELECT c FROM Client c WHERE LOWER(c.cin) = LOWER(:cin)", Client.class)
+                    .setParameter("cin", cin.trim())
+                    .setMaxResults(1)
+                    .getResultList()
+                    .isEmpty();
+            if (cinAlreadyUsed) {
+                sendError(response, 409, "CONFLICT", "CIN is already registered");
                 return;
             }
             Client client = new Client();

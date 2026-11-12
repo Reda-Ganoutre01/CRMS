@@ -80,13 +80,18 @@ public class AuthServlet extends HttpServlet {
         EntityTransaction tx = em.getTransaction();
         try {
             AuthDao dao = dao(em);
-            if (dao.findByEmail(email) != null ||
-                    !em.createQuery("select c from Client c where lower(c.cin) = lower(:cin)", Client.class)
-                            .setParameter("cin", cin)
-                            .setMaxResults(1)
-                            .getResultList()
-                            .isEmpty() == false) {
-                redirectError(response, request, "/register", "Cet email est déjà utilisé.");
+            if (dao.findByEmail(email) != null) {
+                redirectError(response, request, "/register", "Cet email est déjà utilisé. Utilisez une autre adresse.");
+                return;
+            }
+            boolean cinAlreadyUsed = !em.createQuery(
+                            "select c from Client c where lower(c.cin) = lower(:cin)", Client.class)
+                    .setParameter("cin", cin)
+                    .setMaxResults(1)
+                    .getResultList()
+                    .isEmpty();
+            if (cinAlreadyUsed) {
+                redirectError(response, request, "/register", "Ce CIN est déjà utilisé. Vérifiez le numéro saisi.");
                 return;
             }
             Client client = new Client();

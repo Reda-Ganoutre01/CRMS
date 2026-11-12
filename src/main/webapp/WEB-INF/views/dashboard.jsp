@@ -31,7 +31,7 @@
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <h2 class="text-xl font-bold text-slate-800">Derniers contrats</h2>
-    <a class="inline-flex items-center rounded-lg font-medium text-white transition px-4 py-2 text-sm bg-sky-600 hover:bg-sky-700" href="${pageContext.request.contextPath}/contrats?action=new">+ Nouveau contrat</a>
+    <a class="inline-flex items-center rounded-lg font-medium text-white transition px-4 py-2 text-sm bg-sky-600 hover:bg-sky-700" href="${pageContext.request.contextPath}/admin/contrats">Voir tous les contrats</a>
 </div>
 
 <div class="overflow-x-auto rounded-xl bg-white shadow">
@@ -48,7 +48,7 @@
             <td class="px-4 py-3">${c.dateDebut} → ${c.dateFin}</td>
             <td class="px-4 py-3"><fmt:formatNumber value="${c.montantTotal}" pattern="#,##0.00"/> MAD</td>
             <td class="px-4 py-3">
-                <span class="rounded-full px-2.5 py-1 text-xs font-semibold ${c.statut == 'EN_COURS' ? 'bg-sky-100 text-sky-700' : (c.statut == 'TERMINE' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600')}">${c.statut.libelle}</span>
+                <span class="rounded-full px-2.5 py-1 text-xs font-semibold ${c.statut.name() == 'ACTIF' ? 'bg-sky-100 text-sky-700' : 'bg-emerald-100 text-emerald-700'}">${c.statut}</span>
             </td>
         </tr>
     </c:forEach>
