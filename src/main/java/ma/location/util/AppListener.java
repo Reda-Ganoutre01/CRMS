@@ -12,4 +12,9 @@ public class AppListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         JPAUtil.close();
     }
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        DataInitializer.initialize();
+    }
 }
