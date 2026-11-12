@@ -10,6 +10,10 @@
         <class>ma.location.model.Vehicule</class>
         <class>ma.location.model.Client</class>
         <class>ma.location.model.Contrat</class>
+        <class>ma.location.model.Utilisateur</class>
+        <class>ma.location.model.Administrateur</class>
+        <class>ma.location.model.Reservation</class>
+        <class>ma.location.model.Offre</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>

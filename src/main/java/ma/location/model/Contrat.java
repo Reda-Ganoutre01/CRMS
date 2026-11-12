@@ -35,6 +35,12 @@ public class Contrat {
     @Column(name = "montant_total", nullable = false)
     private double montantTotal;
 
+    @Column(name = "km_depart")
+    private Integer kmDepart;
+
+    @Column(name = "km_retour")
+    private Integer kmRetour;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Statut statut = Statut.EN_COURS;
