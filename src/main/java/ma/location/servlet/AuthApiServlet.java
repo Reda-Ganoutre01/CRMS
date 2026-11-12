@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ma.location.dao.AuthDao;
 import ma.location.model.Client;
+import ma.location.model.Role;
 import ma.location.model.Utilisateur;
 import ma.location.util.JPAUtil;
 
@@ -122,6 +123,7 @@ public class AuthApiServlet extends HttpServlet {
             client.setNumeroPermis(value(body, "numeroPermis"));
             client.setMotDePasse(dao.hashPassword(password));
             client.setToken(UUID.randomUUID().toString().replace("-", "").substring(0, 20));
+            client.setRole(Role.USER);
             tx.begin();
             em.persist(client);
             tx.commit();
@@ -218,7 +220,7 @@ public class AuthApiServlet extends HttpServlet {
     private Map<String, Object> userView(Utilisateur u) {
         Map<String, Object> view = new LinkedHashMap<>();
         view.put("id", u.getId()); view.put("nom", u.getNom()); view.put("prenom", u.getPrenom());
-        view.put("email", u.getEmail()); view.put("role", u.getClass().getSimpleName().toUpperCase());
+        view.put("email", u.getEmail()); view.put("role", u.getRole().name());
         return view;
     }
     private Map<String, String> readBody(HttpServletRequest req, HttpServletResponse resp) throws IOException {

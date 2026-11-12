@@ -1,171 +1,169 @@
-# Car Rental Management System (CRMS)
+# CRMS - Car Rental Management System
 
-CRMS is a Java web application skeleton for managing car-rental customers,
-vehicles, and rental contracts. The repository currently contains the
-domain model and the initial web application entry page. It does **not yet
-contain a complete, usable rental-management application**.
+CRMS is a Java/Jakarta EE application for managing clients, vehicles,
+reservations, rental contracts, offers, and authentication.
 
-## Current implementation status
+## Current state
 
-| Area | Status | What is present |
-|---|---|---|
-| Project build | Partial | Maven WAR project targeting Java 11 |
-| Domain model | Implemented | JPA entities for `Client`, `Vehicule`, and `Contrat` |
-| Rental status | Implemented | `Statut.EN_COURS`, `TERMINE`, and `ANNULE` |
-| Entity relationships | Implemented in the model | Clients and vehicles have one-to-many contract collections; contracts reference one client and one vehicle |
-| Basic derived values | Implemented | Client full name, vehicle label, and contract billed-day calculation |
-| Persistence bootstrap | Not implemented | `JPAUtil` is empty and no `persistence.xml` or equivalent configuration exists |
-| Database schema/configuration | Not implemented | No application datasource, Hibernate properties, migrations, or seed data are present |
-| Server-side application logic | Not implemented | No servlets, controllers, services, repositories, or DAOs are present |
-| User interface | Not implemented | Only a static `index.jsp` welcome page exists |
-| Authentication/authorization | Not implemented | No application users, login, roles, or protected routes |
-| Tests | Not implemented | No `src/test` directory or test classes are present |
+The project currently contains:
 
-## Implemented domain model
+- JPA entities for users, clients, vehicles, contracts, reservations, and offers.
+- Generic, client, vehicle, contract, and authentication DAO classes.
+- JWT authentication endpoints under `/api/auth/*`.
+- A dashboard servlet at `/accueil`.
+- A static prototype dashboard in `index.html`.
+- Hibernate/JPA configuration and a MySQL JDBC dependency.
 
-### `Client`
+The application is not yet a complete usable rental-management system.
+Only authentication routes and the dashboard servlet are mapped. The
+vehicle, client, contract, reservation, offer, and dashboard REST APIs still
+need to be implemented.
 
-Mapped to the `clients` table. It contains:
+## Missing functionality
 
-- Generated `id`
-- Required `nom`, `prenom`, and unique `cin`
-- Optional `telephone`, `email`, `adresse`, and `numeroPermis`
-- A one-to-many relationship to rental contracts
-- `getNomComplet()`, which returns `prenom + " " + nom`
+### Backend
 
-### `Vehicule`
+- REST CRUD endpoints for clients and vehicles.
+- REST endpoints for contracts, including start, finish, cancel, and invoice.
+- Reservation creation, modification, cancellation, confirmation, and availability checks.
+- Offer CRUD operations and active-offer filtering.
+- Dashboard statistics, revenue, recent contracts, and vehicle-usage APIs.
+- Authentication and authorization filters for protected routes.
+- Admin/client role enforcement.
+- Request validation and consistent API error responses.
+- Rental business rules:
+  - Validate rental date ordering.
+  - Prevent overlapping reservations and contracts.
+  - Check vehicle status and availability.
+  - Calculate totals on the server.
+  - Validate departure and return mileage.
+  - Keep vehicle status synchronized with contract status.
+- Unit and integration tests.
+- Production-safe database configuration and seed data.
 
-Mapped to the `vehicules` table. It contains:
+### Frontend
 
-- Generated `id`
-- Required, unique `immatriculation`
-- Required `marque`, `modele`, and `prixJour`
-- Optional `carburant`
-- `annee`, `kilometrage`, and `disponible`
-- `disponible` defaults to `true`
-- A one-to-many relationship to rental contracts
-- `getLibelle()`, which combines the make, model, and registration number
+- Replace localStorage-only data with calls to the backend API.
+- Add login, registration, logout, and authenticated-session handling.
+- Add forms and validation for clients, vehicles, reservations, contracts, and offers.
+- Add edit, delete, status-change, and detail actions.
+- Display API errors and loading states.
+- Restrict admin-only actions in the interface.
+- Connect dashboard cards and tables to live backend data.
 
-### `Contrat`
+## Work division
 
-Mapped to the `contrats` table. It contains:
+The implementation is divided between two people. Each person should work on
+their own branch and open a pull request before integration.
 
-- Generated `id`
-- Required many-to-one references to a client and a vehicle
-- Required `dateDebut` and `dateFin`
-- Required `montantTotal`
-- A string-persisted `Statut`, defaulting to `EN_COURS`
-- `getNbJours()`, which returns the date difference in days with a minimum of
-  one billed day
+### Person 1 - Backend and business logic
 
-The model does not currently enforce business rules such as date ordering,
-vehicle availability, contract overlap prevention, amount calculation,
-odometer validation, or automatic status transitions.
+Implement the server-side application:
+
+1. Create REST servlets/controllers for:
+   - `/api/clients`
+   - `/api/vehicles`
+   - `/api/reservations`
+   - `/api/contracts`
+   - `/api/offers`
+   - `/api/dashboard`
+2. Add missing DAOs/services and transaction boundaries.
+3. Implement validation, authorization, and role checks.
+4. Implement reservation availability and contract lifecycle rules.
+5. Fix authentication issues:
+   - Correct the duplicate-CIN registration check.
+   - Validate and configure a JWT secret of at least 32 characters.
+   - Protect authenticated and administrator routes.
+6. Standardize JSON responses and error responses.
+7. Add backend unit and integration tests.
+8. Align `persistence.xml`, `sql/location.sql`, and entity table names.
+
+**Deliverable:** a documented, tested REST API that persists data in MySQL
+and enforces the rental business rules.
+
+### Person 2 - Frontend and user experience
+
+Implement the browser application:
+
+1. Replace the sample localStorage data in `index.html` with API calls.
+2. Add login, registration, logout, and session-expiration handling.
+3. Implement client management screens:
+   - List and search clients.
+   - Create, edit, view, and delete/deactivate clients.
+4. Implement vehicle management screens:
+   - List and filter vehicles.
+   - Create, edit, view, and delete/deactivate vehicles.
+   - Change vehicle status.
+5. Implement reservation and contract screens:
+   - Create reservations.
+   - Confirm or cancel reservations.
+   - Start, finish, and cancel contracts.
+   - Display invoices and rental totals.
+6. Implement offer management screens.
+7. Connect dashboard statistics and recent-contract data to the API.
+8. Add loading states, validation messages, API error display, and
+   authorization-aware controls.
+
+**Deliverable:** a responsive frontend that uses the backend API exclusively
+and supports the complete client, vehicle, reservation, contract, and offer
+workflow.
+
+## Shared integration checklist
+
+Both people must agree on the following before frontend/backend integration:
+
+- API paths and HTTP methods documented in `docs/API.md`.
+- JSON field names and date format (`YYYY-MM-DD`).
+- Authentication mechanism: JWT in an `HttpOnly` cookie, with optional bearer
+  authentication for non-browser clients.
+- HTTP status codes and common error response structure.
+- Client and administrator permissions.
+- Vehicle and reservation status values.
+- Contract total calculation and mileage rules.
+
+Before merging:
+
+1. Start MySQL and create the database using the project configuration.
+2. Build the project with Maven:
+
+   ```bash
+   mvn clean package
+   ```
+
+3. Deploy `target/location-voitures.war` to Tomcat 10.1 or run it through the
+   IDE's Tomcat configuration.
+4. Verify authentication, CRUD operations, reservation availability, contract
+   lifecycle, dashboard statistics, and unauthorized access.
+5. Run all automated tests.
 
 ## Project structure
 
 ```text
-.
-├── pom.xml
-├── src/main/java/ma/location/model/
-│   ├── Client.java
-│   ├── Contrat.java
-│   ├── Statut.java
-│   └── Vehicule.java
-├── src/main/java/ma/location/util/
-│   └── JPAUtil.java
-├── src/main/webapp/
-│   ├── index.jsp
-│   └── WEB-INF/web.xml
-└── docs/
-    ├── diagramme_car_classes.png
-    └── diagramme_car_rental.png
+src/main/java/ma/location/
+├── dao/                 Persistence and query classes
+├── filter/              Servlet filters
+├── model/               JPA entities and enums
+├── servlet/             HTTP endpoints
+└── util/                JPA and application lifecycle utilities
+
+src/main/resources/META-INF/persistence.xml
+src/main/webapp/          JSP/static web resources
+docs/API.md               REST API contract
+sql/location.sql          Database script
 ```
 
-The `.smarttomcat` directory contains IDE-generated Tomcat configuration,
-including an HTTP connector on port `8080`. It is not application business
-logic and should not be treated as database or security configuration.
+## Configuration
 
-## Technology stack
+Configure the following values outside source control:
 
-- Java 11 source and target level in `pom.xml`
-- Maven WAR packaging
-- Servlet API 4.0.1 and JSP API 2.3.3, supplied by the servlet container
-- JSTL 1.2
-- Hibernate ORM 5.6.15.Final
-- MySQL Connector/J 8.0.33
-- Intended deployment target: Tomcat 9 / `javax.servlet`
+- MySQL connection URL, username, and password.
+- `JWT_SECRET`, containing at least 32 characters.
 
-The generated WAR name is `location-voitures.war`.
+Use `.env.example` as the template for local environment configuration.
+Never commit real credentials or JWT secrets.
 
-## Running the current skeleton
+## API documentation
 
-### Prerequisites
-
-Install and configure:
-
-1. JDK 11 or a compatible Java runtime
-2. Apache Maven
-3. Apache Tomcat 9
-4. MySQL, if persistence is added
-
-### Build
-
-From the repository root:
-
-```bash
-mvn clean package
-```
-
-The WAR should be generated at:
-
-```text
-target/location-voitures.war
-```
-
-Deploy that WAR to Tomcat's `webapps` directory and start Tomcat. With the
-default Tomcat connector, the static page is available at:
-
-```text
-http://localhost:8080/location-voitures/
-```
-
-At the current stage, this displays only:
-
-```text
-Car Rental Management System!
-```
-
-The build command could not be executed in the development environment used
-to inspect this repository because the `mvn` command was not installed or
-available on `PATH`.
-
-## Not implemented yet
-
-The following work is still required before this becomes a functional
-application:
-
-1. Add JPA configuration (`persistence.xml` or an equivalent bootstrap) and
-   complete `JPAUtil`.
-2. Configure the MySQL JDBC URL, credentials, dialect, schema-generation
-   strategy, and environment-specific secrets.
-3. Add repositories/DAOs and transactions for clients, vehicles, and
-   contracts.
-4. Add services that enforce rental rules, calculate totals, check vehicle
-   availability, and update statuses.
-5. Add servlets/controllers and URL mappings.
-6. Replace the placeholder JSP with pages/forms for listing, creating,
-   editing, and deleting customers and vehicles, plus creating and managing
-   contracts.
-7. Add validation and user-visible error handling.
-8. Add authentication and authorization if multiple user roles are required.
-9. Add automated unit/integration tests and database test data.
-10. Add deployment and configuration documentation once the persistence and
-    application layers are wired.
-
-## Design references
-
-The `docs/` directory contains the existing class and rental diagrams:
-
-- [`diagramme_car_classes.png`](docs/diagramme_car_classes.png)
-- [`diagramme_car_rental.png`](docs/diagramme_car_rental.png)
+The expected endpoint contract is documented in
+[`docs/API.md`](docs/API.md). Update that document whenever an endpoint,
+request body, response body, permission, or status value changes.
