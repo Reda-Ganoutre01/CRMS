@@ -1,5 +1,109 @@
-<html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRMS - Gestion de location</title>
+  <style>
+    :root{font-family:Arial,sans-serif;color:#172033;background:#f4f6fb}
+    *{box-sizing:border-box}body{margin:0}.layout{display:flex;min-height:100vh}
+    aside{width:230px;padding:24px 16px;background:#172554;color:#fff}.logo{margin:0 10px 35px;font-size:23px;font-weight:bold}
+    nav button{display:block;width:100%;margin:5px 0;padding:12px;border:0;border-radius:8px;color:#dbe4ff;background:transparent;text-align:left;cursor:pointer}
+    nav button:hover,nav button.active{color:#fff;background:#30458e}main{width:100%;padding:32px;max-width:1400px;margin:auto}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}h1{margin:0 0 7px}h2{margin:0 0 18px;font-size:20px}
+    p,small{color:#687386}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:25px}
+    .card,.panel{padding:20px;border:1px solid #e3e7ef;border-radius:13px;background:#fff;box-shadow:0 4px 14px #18264a0b}
+    .number{display:block;margin-top:12px;font-size:28px;font-weight:bold}.blue{color:#3157d5}.green{color:#16845b}.red{color:#c13a4a}
+    .view{display:none}.view.active{display:block}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
+    input{padding:10px 12px;border:1px solid #d5dae5;border-radius:8px;font-size:14px}.btn{padding:10px 14px;border:0;border-radius:8px;color:#fff;background:#3157d5;font-weight:bold;cursor:pointer}
+    table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:13px 10px;border-bottom:1px solid #e7eaf0;text-align:left}th{color:#687386;font-size:11px;text-transform:uppercase}
+    .badge{padding:5px 9px;border-radius:20px;color:#16845b;background:#e4f6ed;font-size:12px;font-weight:bold}.danger{background:#c13a4a}
+    .empty{text-align:center;color:#687386;padding:25px}.avatar{padding:11px 14px;border-radius:50%;color:#fff;background:#3157d5;font-weight:bold}
+    textarea,select{padding:10px 12px;border:1px solid #d5dae5;border-radius:8px;font:inherit;background:#fff}#api-endpoint{min-width:220px}#api-base{flex:1;min-width:260px}.api-log-panel{margin-top:20px}.request{padding:13px 0;border-bottom:1px solid #e7eaf0}.request:last-child{border-bottom:0}.request code{display:block;margin-top:6px;white-space:pre-wrap;color:#536078}.ok{color:#16845b}.fail{color:#c13a4a}
+    @media(max-width:800px){aside{width:70px;padding:20px 8px}.logo{font-size:0}.logo:first-letter{font-size:22px}nav button{font-size:0;text-align:center}nav button:first-letter{font-size:18px}main{padding:20px 14px}.cards{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:500px){header,.toolbar{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr}}
+  </style>
+</head>
 <body>
-<h2>Car Rental Management System!</h2>
+<div class="layout">
+  <aside><div class="logo">🚗 CRMS</div><nav>
+    <button class="active" data-page="dashboard">▦ Tableau de bord</button>
+    <button data-page="vehicles">🚙 Vehicules</button>
+    <button data-page="clients">♙ Clients</button>
+    <button data-page="contracts">▤ Contrats</button>
+    <button data-page="api">⌁ API Requests</button>
+  </nav></aside>
+  <main>
+    <header><div><h1 id="title">Tableau de bord</h1><p>Gestion de votre agence de location.</p></div><div>Administrateur <span class="avatar">A</span></div></header>
+    <section id="dashboard" class="view active"><div class="cards">
+      <div class="card"><small>Total vehicules</small><span class="number blue" id="vehicle-count">0</span></div>
+      <div class="card"><small>Disponibles</small><span class="number green" id="available-count">0</span></div>
+      <div class="card"><small>Total clients</small><span class="number" id="client-count">0</span></div>
+      <div class="card"><small>Contrats en cours</small><span class="number red" id="contract-count">0</span></div>
+    </div><div class="panel"><h2>Derniers contrats</h2><div id="recent"></div></div></section>
+    <section id="vehicles" class="view"><div class="panel"><div class="toolbar"><h2>Vehicules</h2><button class="btn" onclick="addVehicle()">+ Ajouter</button></div><div id="vehicle-list"></div></div></section>
+    <section id="clients" class="view"><div class="panel"><div class="toolbar"><h2>Clients</h2><button class="btn" onclick="addClient()">+ Ajouter</button></div><div id="client-list"></div></div></section>
+    <section id="contracts" class="view"><div class="panel"><div class="toolbar"><h2>Contrats</h2><button class="btn" onclick="addContract()">+ Nouveau contrat</button></div><div id="contract-list"></div></div></section>
+    <section id="api" class="view">
+      <div class="panel">
+        <h2>API Requests</h2>
+        <p>Testez les endpoints REST. L'URL par defaut vise le serveur local.</p>
+        <div class="toolbar">
+          <select id="api-method"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select>
+          <select id="api-endpoint">
+            <option value="/api/vehicles">/api/vehicles</option>
+            <option value="/api/vehicles/available">/api/vehicles/available</option>
+            <option value="/api/clients">/api/clients</option>
+            <option value="/api/contracts">/api/contracts</option>
+            <option value="/api/reservations">/api/reservations</option>
+            <option value="/api/offers/active">/api/offers/active</option>
+            <option value="/api/dashboard/statistics">/api/dashboard/statistics</option>
+          </select>
+          <input id="api-base" value="http://localhost:8080/location-voitures" aria-label="API base URL">
+          <button class="btn" onclick="sendApiRequest()">Envoyer</button>
+        </div>
+        <label>Corps JSON (pour POST ou PUT)</label>
+        <textarea id="api-body" rows="4" placeholder='{"example":"value"}'></textarea>
+      </div>
+      <div class="panel api-log-panel"><div class="toolbar"><h2>Journal des requetes</h2><button class="btn secondary" onclick="clearApiLog()">Effacer</button></div><div id="api-log"><div class="empty">Aucune requete envoyee</div></div></div>
+    </section>
+  </main>
+</div>
+<script>
+const data={
+ vehicles:JSON.parse(localStorage.getItem('crms-vehicles')||'[{"brand":"Dacia","model":"Logan","plate":"12345-A-6","price":250,"status":"DISPONIBLE"},{"brand":"Renault","model":"Clio","plate":"23456-B-1","price":350,"status":"LOUE"}]'),
+ clients:JSON.parse(localStorage.getItem('crms-clients')||'[{"first":"Youssef","last":"Alaoui","cin":"EE123456"},{"first":"Salma","last":"Benani","cin":"EE654321"}]'),
+ contracts:JSON.parse(localStorage.getItem('crms-contracts')||'[{"client":"Youssef Alaoui","vehicle":"Dacia Logan","dates":"01/11/2026 - 05/11/2026","status":"EN_COURS"}]')
+};
+let apiLog=JSON.parse(localStorage.getItem('crms-api-log')||'[]');
+const save=()=>{Object.keys(data).forEach(k=>localStorage.setItem('crms-'+k,JSON.stringify(data[k])));render()};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const table=(head,body,empty)=>`<table><thead><tr>${head.map(x=>'<th>'+x+'</th>').join('')}</tr></thead><tbody>${body||'<tr><td class="empty" colspan="'+head.length+'">'+empty+'</td></tr>'}</tbody></table>`;
+function logApi(method,url,status,detail){apiLog.unshift({time:new Date().toLocaleTimeString(),method,url,status,detail});apiLog=apiLog.slice(0,20);localStorage.setItem('crms-api-log',JSON.stringify(apiLog));renderApiLog()}
+function renderApiLog(){const box=document.querySelector('#api-log');if(!box)return;box.innerHTML=apiLog.length?apiLog.map(r=>`<div class="request"><strong class="${r.status>=200&&r.status<400?'ok':'fail'}">${esc(r.status)} ${esc(r.method)}</strong> <span>${esc(r.time)}</span><code>${esc(r.url)}${r.detail?'\n'+esc(r.detail):''}</code></div>`).join(''):'<div class="empty">Aucune requete envoyee</div>'}
+function clearApiLog(){apiLog=[];localStorage.removeItem('crms-api-log');renderApiLog()}
+async function sendApiRequest(){
+ const method=document.querySelector('#api-method').value, base=document.querySelector('#api-base').value.replace(/\/$/,''), path=document.querySelector('#api-endpoint').value, body=document.querySelector('#api-body').value.trim(), url=base+path;
+ logApi(method,url,'...',body?'Request body: '+body:'');
+ try{
+   const options={method,headers:{'Accept':'application/json'}};
+   if(body&&(method==='POST'||method==='PUT')){options.headers['Content-Type']='application/json';options.body=body}
+   const response=await fetch(url,options), text=await response.text();
+   apiLog.shift();logApi(method,url,response.status,text.slice(0,500)||'Empty response');
+ }catch(error){apiLog.shift();logApi(method,url,'ERR',error.message+' (API non demarcee ou CORS bloque)')}
+}
+function render(){
+ document.querySelector('#vehicle-count').textContent=data.vehicles.length;document.querySelector('#available-count').textContent=data.vehicles.filter(v=>v.status==='DISPONIBLE').length;document.querySelector('#client-count').textContent=data.clients.length;document.querySelector('#contract-count').textContent=data.contracts.filter(c=>c.status==='EN_COURS').length;
+ document.querySelector('#vehicle-list').innerHTML=table(['Vehicule','Immatriculation','Prix/jour','Statut'],data.vehicles.map(v=>`<tr><td>${esc(v.brand)} ${esc(v.model)}</td><td>${esc(v.plate)}</td><td>${v.price} MAD</td><td><span class="badge">${esc(v.status)}</span></td></tr>`).join(''),'Aucun vehicule');
+ document.querySelector('#client-list').innerHTML=table(['Client','CIN'],data.clients.map(c=>`<tr><td>${esc(c.first)} ${esc(c.last)}</td><td>${esc(c.cin)}</td></tr>`).join(''),'Aucun client');
+ const rows=data.contracts.map(c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.vehicle)}</td><td>${esc(c.dates)}</td><td><span class="badge">${esc(c.status)}</span></td></tr>`).join('');
+ document.querySelector('#contract-list').innerHTML=table(['Client','Vehicule','Periode','Statut'],rows,'Aucun contrat');document.querySelector('#recent').innerHTML=table(['Client','Vehicule','Statut'],data.contracts.slice(-5).map(c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.vehicle)}</td><td><span class="badge">${esc(c.status)}</span></td></tr>`).join(''),'Aucun contrat');
+ renderApiLog();
+}
+function addVehicle(){let brand=prompt('Marque:'),model=prompt('Modele:'),plate=prompt('Immatriculation:'),price=prompt('Prix par jour:');if(brand&&model&&plate&&price){data.vehicles.push({brand,model,plate,price,status:'DISPONIBLE'});logApi('POST','/api/vehicles',201,JSON.stringify({brand,model,plate,price}));save()}}
+function addClient(){let first=prompt('Prenom:'),last=prompt('Nom:'),cin=prompt('CIN:');if(first&&last&&cin){data.clients.push({first,last,cin});logApi('POST','/api/clients',201,JSON.stringify({first,last,cin}));save()}}
+function addContract(){let client=prompt('Nom du client:'),vehicle=prompt('Vehicule:'),dates=prompt('Periode:');if(client&&vehicle&&dates){data.contracts.push({client,vehicle,dates,status:'EN_COURS'});logApi('POST','/api/contracts',201,JSON.stringify({client,vehicle,dates}));save()}}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelector('#'+b.dataset.page).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelector('#title').textContent=b.textContent.trim()});render();
+</script>
 </body>
 </html>

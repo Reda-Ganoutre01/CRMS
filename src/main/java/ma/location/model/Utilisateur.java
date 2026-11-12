@@ -31,4 +31,7 @@ public class Utilisateur {
 
     @Column(length = 20)
     private String telephone;
+
+    @Column(name = "token", nullable = false, length = 20)
+    private String token;
 }
