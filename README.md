@@ -2,6 +2,7 @@
 
 Application web de gestion d'une agence de location de voitures, développée avec Jakarta EE, Java 17, JSP/JSTL, JPA/Hibernate et MySQL.
 
+
 ## Fonctionnalités
 
 - Consultation publique du catalogue des véhicules.
