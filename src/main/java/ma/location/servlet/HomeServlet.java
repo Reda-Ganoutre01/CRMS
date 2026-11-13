@@ -3,6 +3,7 @@ package ma.location.servlet;
 import ma.location.dao.ClientDAO;
 import ma.location.dao.ContratDAO;
 import ma.location.dao.VehiculeDAO;
+import ma.location.model.Role;
 import ma.location.service.ClientService;
 
 import jakarta.servlet.ServletException;
@@ -24,6 +25,10 @@ public class HomeServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (!clientService.isAuthenticated(req)) {
             resp.sendRedirect(req.getContextPath() + "/vehicules");
+            return;
+        }
+        if (!clientService.hasRole(req, Role.ADMIN)) {
+            resp.sendRedirect(req.getContextPath() + "/mes-reservations");
             return;
         }
         req.setAttribute("nbVehicules", vehiculeDAO.count());

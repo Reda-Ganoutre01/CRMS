@@ -12,6 +12,8 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -122,16 +124,38 @@ public class AuthDao extends GenericDAO<Utilisateur> {
             secret = System.getProperty("JWT_SECRET");
         }
         if (secret == null || secret.isBlank()) {
-            secret = Dotenv.configure()
-                    .ignoreIfMissing()
-                    .ignoreIfMalformed()
-                    .load()
-                    .get("JWT_SECRET");
+            secret = loadDotenvSecret();
         }
         if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw new IllegalStateException(
                     "JWT_SECRET must be configured with at least 32 characters");
         }
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String loadDotenvSecret() {
+        Path directory = Paths.get("").toAbsolutePath().normalize();
+        Path catalinaBase = propertyPath("catalina.base");
+        Path catalinaHome = propertyPath("catalina.home");
+        Path[] roots = {catalinaBase, catalinaHome, directory};
+        for (Path root : roots) {
+            directory = root;
+            for (int level = 0; level < 8 && directory != null; level++) {
+                String secret = Dotenv.configure()
+                        .directory(directory.toString())
+                        .ignoreIfMissing()
+                        .ignoreIfMalformed()
+                        .load()
+                        .get("JWT_SECRET");
+                if (secret != null && !secret.isBlank()) return secret;
+                directory = directory.getParent();
+            }
+        }
+        return null;
+    }
+
+    private Path propertyPath(String name) {
+        String value = System.getProperty(name);
+        return value == null || value.isBlank() ? null : Paths.get(value).toAbsolutePath().normalize();
     }
 }

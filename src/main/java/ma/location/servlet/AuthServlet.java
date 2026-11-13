@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
 import ma.location.dao.AuthDao;
 import ma.location.model.Client;
 import ma.location.model.Role;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @WebServlet({"/login", "/register", "/logout"})
 public class AuthServlet extends HttpServlet {
+    private static final String COOKIE_NAME = "JWT";
     private final ClientService clientService = new ClientService();
 
     @Override
@@ -54,6 +56,7 @@ public class AuthServlet extends HttpServlet {
                 redirectError(response, request, "/login", "Email ou mot de passe invalide.");
                 return;
             }
+            setJwtCookie(request, response, dao.createToken(utilisateur));
             clientService.openSession(request, utilisateur);
             request.getSession().setAttribute("message", "Connexion réussie.");
             String redirect = request.getParameter("redirect");
@@ -113,9 +116,10 @@ public class AuthServlet extends HttpServlet {
             tx.begin();
             em.persist(client);
             tx.commit();
+            setJwtCookie(request, response, dao.createToken(client));
             clientService.openSession(request, client);
             request.getSession().setAttribute("message", "Compte créé avec succès.");
-            response.sendRedirect(request.getContextPath() + "/accueil");
+            response.sendRedirect(request.getContextPath() + "/mes-reservations");
         } catch (RuntimeException exception) {
             if (tx.isActive()) tx.rollback();
             redirectError(response, request, "/register", "Impossible de créer le compte.");
@@ -125,6 +129,7 @@ public class AuthServlet extends HttpServlet {
     }
 
     private void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        clearJwtCookie(request, response);
         clientService.closeSession(request);
         request.getSession(true).setAttribute("message", "Déconnexion réussie.");
         response.sendRedirect(request.getContextPath() + "/login");
@@ -139,6 +144,22 @@ public class AuthServlet extends HttpServlet {
     private void forward(HttpServletRequest request, HttpServletResponse response, String view)
             throws ServletException, IOException {
         request.getRequestDispatcher(view).forward(request, response);
+    }
+
+    private void setJwtCookie(HttpServletRequest request, HttpServletResponse response, String token) {
+        String path = request.getContextPath().isEmpty() ? "/" : request.getContextPath();
+        response.setHeader("Set-Cookie", COOKIE_NAME + "=" + token
+                + "; Max-Age=7200; Path=" + path
+                + "; HttpOnly; SameSite=Strict"
+                + (request.isSecure() ? "; Secure" : ""));
+    }
+
+    private void clearJwtCookie(HttpServletRequest request, HttpServletResponse response) {
+        String path = request.getContextPath().isEmpty() ? "/" : request.getContextPath();
+        response.setHeader("Set-Cookie", COOKIE_NAME
+                + "=; Max-Age=0; Path=" + path
+                + "; HttpOnly; SameSite=Strict"
+                + (request.isSecure() ? "; Secure" : ""));
     }
 
     private void redirectError(HttpServletResponse response, HttpServletRequest request,
