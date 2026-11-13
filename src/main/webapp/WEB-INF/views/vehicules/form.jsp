@@ -57,7 +57,14 @@
         <label class="mb-1 block text-sm font-medium text-slate-700" for="image">Photo du véhicule (jpg, png ou webp, 2 Mo maximum)</label>
         <%-- Photo actuelle (en modification) --%>
         <c:if test="${not empty vehicule.image}">
-            <img class="mb-2 h-32 rounded-lg object-cover" src="${pageContext.request.contextPath}/images/${vehicule.image}" alt="Photo actuelle">
+            <img class="mb-2 h-32 rounded-lg object-cover"
+                 src="${pageContext.request.contextPath}/images/${vehicule.image}"
+                 alt="Photo actuelle"
+                 onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/images/car-default.svg';">
+        </c:if>
+        <c:if test="${empty vehicule.image}">
+            <img class="mb-2 h-32 w-48 rounded-lg bg-slate-200 object-contain p-4"
+                 src="${pageContext.request.contextPath}/images/car-default.svg" alt="Icône de voiture par défaut">
         </c:if>
         <input class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-sky-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-sky-700"
                id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp">

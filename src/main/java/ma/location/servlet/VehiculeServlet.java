@@ -2,6 +2,7 @@ package ma.location.servlet;
 
 import ma.location.dao.VehiculeDAO;
 import ma.location.model.Vehicule;
+import ma.location.service.ClientService;
 import ma.location.util.ImageUtil;
 
 import jakarta.servlet.ServletException;
@@ -19,10 +20,16 @@ import java.io.IOException;
 public class VehiculeServlet extends HttpServlet {
 
     private VehiculeDAO dao = new VehiculeDAO();
+    private final ClientService clientService = new ClientService();
 
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (!clientService.isAuthenticated(req)) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
         String action = req.getParameter("action");
 
         if ("new".equals(action)) {
@@ -47,6 +54,11 @@ public class VehiculeServlet extends HttpServlet {
     // (enregistrer ou supprimer)
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (!clientService.isAuthenticated(req)) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
         String action = req.getParameter("action");
 
         if ("delete".equals(action)) {

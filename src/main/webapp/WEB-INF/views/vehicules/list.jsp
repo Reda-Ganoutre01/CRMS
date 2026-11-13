@@ -21,10 +21,15 @@
             <c:choose>
                 <c:when test="${not empty v.image}">
                     <img class="h-44 w-full object-cover" src="${pageContext.request.contextPath}/images/${v.image}"
-                         alt="<c:out value='${v.marque} ${v.modele}'/>">
+                         alt="<c:out value='${v.marque} ${v.modele}'/>"
+                         onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/images/car-default.svg';">
                 </c:when>
                 <c:otherwise>
-                    <div class="flex h-44 items-center justify-center bg-slate-200 text-5xl">🚗</div>
+                    <div class="flex h-44 items-center justify-center bg-slate-200">
+                        <img class="h-24 w-24 object-contain opacity-60"
+                             src="${pageContext.request.contextPath}/images/car-default.svg"
+                             alt="Icône de voiture par défaut">
+                    </div>
                 </c:otherwise>
             </c:choose>
 
