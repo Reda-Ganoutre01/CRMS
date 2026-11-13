@@ -25,7 +25,7 @@
             <td>${contrat.dateDebut} → ${contrat.dateFin}</td>
             <td>${contrat.kmDepart}</td>
             <td>${contrat.kmRetour}</td>
-            <td><span class="badge ${contrat.statut == 'ACTIF' ? 'info' : 'ok'}">${contrat.statut}</span></td>
+            <td><span class="badge ${contrat.statut == 'ACTIF' ? 'info' : 'ok'}"><c:out value="${contrat.statut}"/></span></td>
             <td class="actions">
                 <c:if test="${contrat.statut == 'ACTIF'}">
                     <form method="post" action="${pageContext.request.contextPath}/admin/contrats/cloturer" class="actions">
@@ -35,6 +35,11 @@
                     </form>
                 </c:if>
                 <a class="btn small secondary" href="${pageContext.request.contextPath}/admin/contrats/facture?id=${contrat.id}">Facture</a>
+                <form method="post" action="${pageContext.request.contextPath}/admin/contrats/supprimer"
+                      onsubmit="return confirm('Supprimer ce contrat ? Cette action est irréversible.');">
+                    <input type="hidden" name="contratId" value="${contrat.id}">
+                    <button class="btn small danger" type="submit">Supprimer</button>
+                </form>
             </td>
         </tr>
     </c:forEach>

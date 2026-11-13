@@ -49,14 +49,16 @@
         <button type="submit" class="btn mt-6">Enregistrer les modifications</button>
     </form>
 
-    <aside class="card h-fit border border-red-100">
-        <h2 class="text-lg font-bold text-slate-800">Supprimer le compte</h2>
-        <p class="mt-2 text-sm text-slate-500">Vos contrats et réservations seront conservés, mais vos informations personnelles seront anonymisées.</p>
-        <form method="post" action="${pageContext.request.contextPath}/profile/delete" class="mt-5"
-              onsubmit="return confirm('Voulez-vous vraiment supprimer votre compte ? Cette action est irréversible. Vos contrats et réservations seront conservés.');">
-            <button type="submit" class="btn danger w-full">Supprimer mon compte</button>
-        </form>
-    </aside>
+    <c:if test="${sessionScope.authenticatedRole == 'USER'}">
+        <aside class="card h-fit border border-red-100">
+            <h2 class="text-lg font-bold text-slate-800">Supprimer le compte</h2>
+            <p class="mt-2 text-sm text-slate-500">Vos contrats et réservations seront conservés, mais vos informations personnelles seront anonymisées.</p>
+            <form method="post" action="${pageContext.request.contextPath}/profile/delete" class="mt-5"
+                  onsubmit="return confirm('Voulez-vous vraiment supprimer votre compte ? Cette action est irréversible. Vos contrats et réservations seront conservés.');">
+                <button type="submit" class="btn danger w-full">Supprimer mon compte</button>
+            </form>
+        </aside>
+    </c:if>
 </div>
 
 <%@ include file="/WEB-INF/jspf/footer.jspf" %>

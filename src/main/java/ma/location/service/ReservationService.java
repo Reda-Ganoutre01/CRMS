@@ -79,6 +79,7 @@ public class ReservationService {
             if (reservation == null) {
                 throw new IllegalArgumentException("Réservation introuvable.");
             }
+
             if (reservation.getStatut() != StatutReservation.EN_ATTENTE) {
                 throw new IllegalStateException("Seule une réservation en attente peut être confirmée.");
             }
@@ -87,6 +88,32 @@ public class ReservationService {
                 throw new IllegalStateException("Le véhicule n'est plus disponible pour cette période.");
             }
             reservation.setStatut(StatutReservation.CONFIRMEE);
+            tx.commit();
+            return reservation;
+        } catch (RuntimeException exception) {
+            if (tx.isActive()) tx.rollback();
+            throw exception;
+        } finally {
+            em.close();
+        }
+    }
+
+    public Reservation annuler(Long reservationId, Utilisateur administrateur) {
+        requireAdmin(administrateur);
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Reservation reservation = em.find(Reservation.class, reservationId);
+            if (reservation == null) {
+                throw new IllegalArgumentException("Réservation introuvable.");
+            }
+            if (reservation.getStatut() == StatutReservation.ANNULEE
+                    || reservation.getStatut() == StatutReservation.TERMINEE) {
+                throw new IllegalStateException("Cette réservation ne peut plus être annulée.");
+            }
+            reservation.setStatut(StatutReservation.ANNULEE);
             tx.commit();
             return reservation;
         } catch (RuntimeException exception) {
