@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CRMS - Gestion de location</title>
+  <title>CRMS - Gestion de location de voitures</title>
   <style>
     :root{font-family:Arial,sans-serif;color:#172033;background:#f4f6fb}
     *{box-sizing:border-box}body{margin:0}.layout{display:flex;min-height:100vh}
@@ -16,10 +16,12 @@
     .number{display:block;margin-top:12px;font-size:28px;font-weight:bold}.blue{color:#3157d5}.green{color:#16845b}.red{color:#c13a4a}
     .view{display:none}.view.active{display:block}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
     input{padding:10px 12px;border:1px solid #d5dae5;border-radius:8px;font-size:14px}.btn{padding:10px 14px;border:0;border-radius:8px;color:#fff;background:#3157d5;font-weight:bold;cursor:pointer}
-    table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:13px 10px;border-bottom:1px solid #e7eaf0;text-align:left}th{color:#687386;font-size:11px;text-transform:uppercase}
-    .badge{padding:5px 9px;border-radius:20px;color:#16845b;background:#e4f6ed;font-size:12px;font-weight:bold}.danger{background:#c13a4a}
+    table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:13px 10px;border-bottom:1px solid #e7eaf0;text-align:left;vertical-align:middle}th{color:#687386;font-size:11px;text-transform:uppercase}
+    .badge{padding:5px 9px;border-radius:20px;color:#16845b;background:#e4f6ed;font-size:12px;font-weight:bold}.danger{background:#fee2e2;color:#991b1b}
     .empty{text-align:center;color:#687386;padding:25px}.avatar{padding:11px 14px;border-radius:50%;color:#fff;background:#3157d5;font-weight:bold}
     textarea,select{padding:10px 12px;border:1px solid #d5dae5;border-radius:8px;font:inherit;background:#fff}#api-endpoint{min-width:220px}#api-base{flex:1;min-width:260px}.api-log-panel{margin-top:20px}.request{padding:13px 0;border-bottom:1px solid #e7eaf0}.request:last-child{border-bottom:0}.request code{display:block;margin-top:6px;white-space:pre-wrap;color:#536078}.ok{color:#16845b}.fail{color:#c13a4a}
+    .car-thumb{width:90px;height:55px;object-fit:cover;border-radius:8px;box-shadow:0 2px 6px rgba(15,23,42,0.15);border:1px solid #e2e8f0;display:block;transition:transform .2s}
+    .car-thumb:hover{transform:scale(1.08)}
     @media(max-width:800px){aside{width:70px;padding:20px 8px}.logo{font-size:0}.logo:first-letter{font-size:22px}nav button{font-size:0;text-align:center}nav button:first-letter{font-size:18px}main{padding:20px 14px}.cards{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:500px){header,.toolbar{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr}}
   </style>
@@ -34,14 +36,14 @@
     <button data-page="api">⌁ API Requests</button>
   </nav></aside>
   <main>
-    <header><div><h1 id="title">Tableau de bord</h1><p>Gestion de votre agence de location.</p></div><div>Administrateur <span class="avatar">A</span></div></header>
+    <header><div><h1 id="title">Tableau de bord</h1><p>Gestion de votre agence de location de voitures.</p></div><div>Administrateur <span class="avatar">A</span></div></header>
     <section id="dashboard" class="view active"><div class="cards">
       <div class="card"><small>Total vehicules</small><span class="number blue" id="vehicle-count">0</span></div>
       <div class="card"><small>Disponibles</small><span class="number green" id="available-count">0</span></div>
       <div class="card"><small>Total clients</small><span class="number" id="client-count">0</span></div>
       <div class="card"><small>Contrats en cours</small><span class="number red" id="contract-count">0</span></div>
     </div><div class="panel"><h2>Derniers contrats</h2><div id="recent"></div></div></section>
-    <section id="vehicles" class="view"><div class="panel"><div class="toolbar"><h2>Vehicules</h2><button class="btn" onclick="addVehicle()">+ Ajouter</button></div><div id="vehicle-list"></div></div></section>
+    <section id="vehicles" class="view"><div class="panel"><div class="toolbar"><h2>Parc Automobile (Véhicules)</h2><button class="btn" onclick="addVehicle()">+ Ajouter un véhicule</button></div><div id="vehicle-list"></div></div></section>
     <section id="clients" class="view"><div class="panel"><div class="toolbar"><h2>Clients</h2><button class="btn" onclick="addClient()">+ Ajouter</button></div><div id="client-list"></div></div></section>
     <section id="contracts" class="view"><div class="panel"><div class="toolbar"><h2>Contrats</h2><button class="btn" onclick="addContract()">+ Nouveau contrat</button></div><div id="contract-list"></div></div></section>
     <section id="api" class="view">
@@ -70,14 +72,44 @@
   </main>
 </div>
 <script>
+const defaultVehicles = [
+  {"brand":"Dacia","model":"Logan","plate":"12345-A-6","price":250,"status":"DISPONIBLE","image":"images/cars/dacia-logan.jpg"},
+  {"brand":"Renault","model":"Clio","plate":"23456-B-1","price":350,"status":"LOUE","image":"images/cars/renault-clio.jpg"},
+  {"brand":"Peugeot","model":"208","plate":"34567-D-7","price":330,"status":"DISPONIBLE","image":"images/cars/peugeot-208.jpg"}
+];
+
+let rawVehicles = localStorage.getItem('crms-vehicles');
+let vehiclesList = defaultVehicles;
+if (rawVehicles) {
+  try {
+    let parsed = JSON.parse(rawVehicles);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      vehiclesList = parsed.map(v => {
+        if (!v.image) {
+          let m = (v.model || '').toLowerCase();
+          if (m.includes('clio')) v.image = 'images/cars/renault-clio.jpg';
+          else if (m.includes('208')) v.image = 'images/cars/peugeot-208.jpg';
+          else v.image = 'images/cars/dacia-logan.jpg';
+        }
+        return v;
+      });
+      if (!vehiclesList.some(v => (v.model || '').includes('208'))) {
+        vehiclesList.push(defaultVehicles[2]);
+      }
+    }
+  } catch(e) {
+    vehiclesList = defaultVehicles;
+  }
+}
+
 const data={
- vehicles:JSON.parse(localStorage.getItem('crms-vehicles')||'[{"brand":"Dacia","model":"Logan","plate":"12345-A-6","price":250,"status":"DISPONIBLE"},{"brand":"Renault","model":"Clio","plate":"23456-B-1","price":350,"status":"LOUE"}]'),
+ vehicles: vehiclesList,
  clients:JSON.parse(localStorage.getItem('crms-clients')||'[{"first":"Youssef","last":"Alaoui","cin":"EE123456"},{"first":"Salma","last":"Benani","cin":"EE654321"}]'),
  contracts:JSON.parse(localStorage.getItem('crms-contracts')||'[{"client":"Youssef Alaoui","vehicle":"Dacia Logan","dates":"01/11/2026 - 05/11/2026","status":"EN_COURS"}]')
 };
 let apiLog=JSON.parse(localStorage.getItem('crms-api-log')||'[]');
 const save=()=>{Object.keys(data).forEach(k=>localStorage.setItem('crms-'+k,JSON.stringify(data[k])));render()};
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const table=(head,body,empty)=>`<table><thead><tr>${head.map(x=>'<th>'+x+'</th>').join('')}</tr></thead><tbody>${body||'<tr><td class="empty" colspan="'+head.length+'">'+empty+'</td></tr>'}</tbody></table>`;
 function logApi(method,url,status,detail){apiLog.unshift({time:new Date().toLocaleTimeString(),method,url,status,detail});apiLog=apiLog.slice(0,20);localStorage.setItem('crms-api-log',JSON.stringify(apiLog));renderApiLog()}
 function renderApiLog(){const box=document.querySelector('#api-log');if(!box)return;box.innerHTML=apiLog.length?apiLog.map(r=>`<div class="request"><strong class="${r.status>=200&&r.status<400?'ok':'fail'}">${esc(r.status)} ${esc(r.method)}</strong> <span>${esc(r.time)}</span><code>${esc(r.url)}${r.detail?'\n'+esc(r.detail):''}</code></div>`).join(''):'<div class="empty">Aucune requete envoyee</div>'}
@@ -94,16 +126,29 @@ async function sendApiRequest(){
 }
 function render(){
  document.querySelector('#vehicle-count').textContent=data.vehicles.length;document.querySelector('#available-count').textContent=data.vehicles.filter(v=>v.status==='DISPONIBLE').length;document.querySelector('#client-count').textContent=data.clients.length;document.querySelector('#contract-count').textContent=data.contracts.filter(c=>c.status==='EN_COURS').length;
- document.querySelector('#vehicle-list').innerHTML=table(['Vehicule','Immatriculation','Prix/jour','Statut'],data.vehicles.map(v=>`<tr><td>${esc(v.brand)} ${esc(v.model)}</td><td>${esc(v.plate)}</td><td>${v.price} MAD</td><td><span class="badge">${esc(v.status)}</span></td></tr>`).join(''),'Aucun vehicule');
+ document.querySelector('#vehicle-list').innerHTML=table(['Photo','Vehicule','Immatriculation','Prix/jour','Statut'],data.vehicles.map(v=>`<tr><td><img class="car-thumb" src="${esc(v.image||'images/cars/dacia-logan.jpg')}" alt="${esc(v.brand)} ${esc(v.model)}"></td><td><strong>${esc(v.brand)} ${esc(v.model)}</strong></td><td><code>${esc(v.plate)}</code></td><td><strong>${v.price} MAD</strong></td><td><span class="badge ${v.status==='DISPONIBLE'?'':'danger'}">${esc(v.status)}</span></td></tr>`).join(''),'Aucun vehicule');
  document.querySelector('#client-list').innerHTML=table(['Client','CIN'],data.clients.map(c=>`<tr><td>${esc(c.first)} ${esc(c.last)}</td><td>${esc(c.cin)}</td></tr>`).join(''),'Aucun client');
  const rows=data.contracts.map(c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.vehicle)}</td><td>${esc(c.dates)}</td><td><span class="badge">${esc(c.status)}</span></td></tr>`).join('');
- document.querySelector('#contract-list').innerHTML=table(['Client','Vehicule','Periode','Statut'],rows,'Aucun contrat');document.querySelector('#recent').innerHTML=table(['Client','Vehicule','Statut'],data.contracts.slice(-5).map(c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.vehicle)}</td><td><span class="badge">${esc(c.status)}</span></td></tr>`).join(''),'Aucun contrat');
+ document.querySelector('#contract-list').innerHTML=table(['Client','Vehicule','Periode','Statut'],rows,'Aucun contrat');
+ document.querySelector('#recent').innerHTML=table(['Client','Vehicule','Statut'],data.contracts.slice(-5).map(c=>`<tr><td>${esc(c.client)}</td><td>${esc(c.vehicle)}</td><td><span class="badge">${esc(c.status)}</span></td></tr>`).join(''),'Aucun contrat');
  renderApiLog();
 }
-function addVehicle(){let brand=prompt('Marque:'),model=prompt('Modele:'),plate=prompt('Immatriculation:'),price=prompt('Prix par jour:');if(brand&&model&&plate&&price){data.vehicles.push({brand,model,plate,price,status:'DISPONIBLE'});logApi('POST','/api/vehicles',201,JSON.stringify({brand,model,plate,price}));save()}}
+function addVehicle(){
+ let brand=prompt('Marque (ex: Dacia, Renault, Peugeot):');
+ let model=prompt('Modele (ex: Logan, Clio, 208):');
+ let plate=prompt('Immatriculation (ex: 45678-C-1):');
+ let price=prompt('Prix par jour en MAD:');
+ let img=prompt('Chemin de l\'image (optionnel):') || 'images/cars/dacia-logan.jpg';
+ if(brand&&model&&plate&&price){
+   data.vehicles.push({brand,model,plate,price,status:'DISPONIBLE',image:img});
+   logApi('POST','/api/vehicles',201,JSON.stringify({brand,model,plate,price,image:img}));
+   save();
+ }
+}
 function addClient(){let first=prompt('Prenom:'),last=prompt('Nom:'),cin=prompt('CIN:');if(first&&last&&cin){data.clients.push({first,last,cin});logApi('POST','/api/clients',201,JSON.stringify({first,last,cin}));save()}}
 function addContract(){let client=prompt('Nom du client:'),vehicle=prompt('Vehicule:'),dates=prompt('Periode:');if(client&&vehicle&&dates){data.contracts.push({client,vehicle,dates,status:'EN_COURS'});logApi('POST','/api/contracts',201,JSON.stringify({client,vehicle,dates}));save()}}
-document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelector('#'+b.dataset.page).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelector('#title').textContent=b.textContent.trim()});render();
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelector('#'+b.dataset.page).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelector('#title').textContent=b.textContent.trim()});
+render();
 </script>
 </body>
 </html>
