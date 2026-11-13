@@ -20,7 +20,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
-@WebServlet({"/reservations/*", "/mes-reservations", "/admin/reservations", "/admin/reservations/valider"})
+@WebServlet({"/reservations/*", "/mes-reservations", "/admin/reservations",
+        "/admin/reservations/valider", "/admin/reservations/annuler"})
 public class ReservationServlet extends HttpServlet {
     private final ClientService clientService = new ClientService();
     private final ReservationService reservationService = new ReservationService();
@@ -76,6 +77,10 @@ public class ReservationServlet extends HttpServlet {
             throws ServletException, IOException {
         if ("/admin/reservations/valider".equals(request.getServletPath())) {
             validateReservation(request, response);
+            return;
+        }
+        if ("/admin/reservations/annuler".equals(request.getServletPath())) {
+            cancelReservation(request, response);
             return;
         }
         if ("/reservations".equals(request.getServletPath())
@@ -142,6 +147,17 @@ public class ReservationServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/accueil?validated=" + reservationId);
         } catch (RuntimeException exception) {
             redirectError(response, request, "/accueil", exception.getMessage());
+        }
+    }
+
+    private void cancelReservation(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!requireAdmin(request, response)) return;
+        try {
+            Long reservationId = requiredLong(request.getParameter("reservationId"), "Réservation requise.");
+            reservationService.annuler(reservationId, currentUser(request));
+            response.sendRedirect(request.getContextPath() + "/admin/reservations?cancelled=true");
+        } catch (RuntimeException exception) {
+            redirectError(response, request, "/admin/reservations", exception.getMessage());
         }
     }
 

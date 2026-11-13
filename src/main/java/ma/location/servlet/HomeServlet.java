@@ -31,6 +31,10 @@ public class HomeServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/vehicules");
             return;
         }
+        if (!clientService.hasRole(req, Role.ADMIN)) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
         req.setAttribute("nbVehicules", vehiculeDAO.count());
         req.setAttribute("nbDisponibles", vehiculeDAO.countDisponibles());
         req.setAttribute("nbClients", clientDAO.count());

@@ -13,6 +13,9 @@ import ma.location.service.ContratService;
 import ma.location.util.JPAUtil;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @WebServlet({"/admin/contrats/*", "/contrats/*"})
 public class ContratServlet extends HttpServlet {
@@ -23,21 +26,26 @@ public class ContratServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if ("/facture".equals(request.getPathInfo())) {
+        String path = request.getPathInfo();
+        if ("/facture".equals(path)) {
             if (!requireAdmin(request, response)) return;
             showInvoice(request, response);
             return;
         }
-        if ("/admin/contrats".equals(request.getServletPath())
-                && request.getPathInfo() == null) {
-                if (!requireAdmin(request, response)) return;
+        if ("/modifier".equals(path)) {
+            if (!requireAdmin(request, response)) return;
+            showEditForm(request, response);
+            return;
+        }
+        if ("/admin/contrats".equals(request.getServletPath()) && path == null) {
+            if (!requireAdmin(request, response)) return;
             request.setAttribute("derniersContrats", contratDAO.findRecent(100));
             request.getRequestDispatcher("/WEB-INF/views/contrats/liste.jsp").forward(request, response);
             return;
         }
-        if ("/contrats".equals(request.getServletPath()) && request.getPathInfo() == null) {
-            request.setAttribute("derniersContrats", contratDAO.findRecent(100));
-            request.getRequestDispatcher("/WEB-INF/views/contrats.jsp").forward(request, response);
+        if ("/contrats".equals(request.getServletPath()) && path == null) {
+            if (!requireAdmin(request, response)) return;
+            response.sendRedirect(request.getContextPath() + "/admin/contrats");
             return;
         }
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -47,12 +55,7 @@ public class ContratServlet extends HttpServlet {
             throws ServletException, IOException {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            Long id = requiredLong(request.getParameter("id"));
-            Contrat contrat = em.createQuery(
-                            "select c from Contrat c join fetch c.client join fetch c.vehicule where c.id = :id",
-                            Contrat.class)
-                    .setParameter("id", id)
-                    .getResultStream().findFirst().orElse(null);
+            Contrat contrat = findContract(em, requiredLong(request.getParameter("id")));
             if (contrat == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Contrat introuvable.");
                 return;
@@ -64,25 +67,68 @@ public class ContratServlet extends HttpServlet {
         }
     }
 
+    private void showEditForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Contrat contrat = findContract(em, requiredLong(request.getParameter("id")));
+            if (contrat == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Contrat introuvable.");
+                return;
+            }
+            request.setAttribute("contrat", contrat);
+            request.getRequestDispatcher("/WEB-INF/views/contrats/modifier.jsp").forward(request, response);
+        } finally {
+            em.close();
+        }
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!requireAdmin(request, response)) return;
         try {
-            if ("/demarrer".equals(request.getPathInfo())) {
+            String path = request.getPathInfo();
+            if ("/demarrer".equals(path)) {
                 contratService.creerDepuisReservation(requiredLong(request.getParameter("reservationId")));
-                response.sendRedirect(request.getContextPath() + "/accueil");
-            } else if ("/cloturer".equals(request.getPathInfo())) {
+                response.sendRedirect(request.getContextPath() + "/admin/contrats");
+            } else if ("/cloturer".equals(path)) {
                 Contrat contrat = contratService.cloturer(
                         requiredLong(request.getParameter("contratId")),
                         Integer.valueOf(request.getParameter("kmRetour")));
                 response.sendRedirect(request.getContextPath() + "/admin/contrats/facture?id=" + contrat.getId());
+            } else if ("/modifier".equals(path)) {
+                contratService.modifier(
+                        requiredLong(request.getParameter("contratId")),
+                        LocalDate.parse(request.getParameter("dateDebut")),
+                        LocalDate.parse(request.getParameter("dateFin")),
+                        Double.parseDouble(request.getParameter("montantTotal")),
+                        parseOptionalInteger(request.getParameter("kmDepart")),
+                        parseOptionalInteger(request.getParameter("kmRetour")));
+                response.sendRedirect(request.getContextPath() + "/admin/contrats");
+            } else if ("/supprimer".equals(path)) {
+                contratService.supprimer(requiredLong(request.getParameter("contratId")));
+                response.sendRedirect(request.getContextPath() + "/admin/contrats");
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
         } catch (RuntimeException exception) {
-            response.sendRedirect(request.getContextPath() + "/accueil?error=" +
-                    java.net.URLEncoder.encode(exception.getMessage(), java.nio.charset.StandardCharsets.UTF_8));
+            response.sendRedirect(request.getContextPath() + "/admin/contrats?error=" +
+                    URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8));
         }
+    }
+
+    private Contrat findContract(EntityManager em, Long id) {
+        return em.createQuery(
+                        "select c from Contrat c join fetch c.client join fetch c.vehicule where c.id = :id",
+                        Contrat.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    private Integer parseOptionalInteger(String value) {
+        return value == null || value.isBlank() ? null : Integer.valueOf(value);
     }
 
     private Long requiredLong(String value) {
@@ -96,8 +142,8 @@ public class ContratServlet extends HttpServlet {
             return true;
         } catch (SecurityException exception) {
             response.sendRedirect(request.getContextPath() + "/login?error=" +
-                    java.net.URLEncoder.encode("Connectez-vous avec un compte administrateur.",
-                            java.nio.charset.StandardCharsets.UTF_8));
+                    URLEncoder.encode("Connectez-vous avec un compte administrateur.",
+                            StandardCharsets.UTF_8));
             return false;
         }
     }

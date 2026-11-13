@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ma.location.dao.AuthDao;
 import ma.location.model.Client;
+import ma.location.model.Role;
 import ma.location.service.ClientService;
 import ma.location.util.JPAUtil;
 import org.mindrot.jbcrypt.BCrypt;
@@ -41,6 +42,11 @@ public class ProfileServlet extends HttpServlet {
         if (!requireAuthentication(request, response)) return;
 
         if ("/profile/delete".equals(request.getServletPath())) {
+            if ("ADMIN".equals(String.valueOf(request.getSession().getAttribute("authenticatedRole")))) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Les comptes administrateur ne peuvent pas être supprimés.");
+                return;
+            }
             deleteAccount(request, response);
             return;
         }
@@ -128,6 +134,7 @@ public class ProfileServlet extends HttpServlet {
             client.setMotDePasse(new AuthDao().hashPassword(UUID.randomUUID().toString()));
             client.setToken(deletedId.substring(0, 20));
             client.setCin("DELETED-" + deletedId.substring(0, 12));
+            client.setRole(Role.USER);
             client.setTelephone(null);
             client.setAdresse(null);
             client.setNumeroPermis(null);
@@ -137,6 +144,7 @@ public class ProfileServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login?deleted=true");
         } catch (RuntimeException exception) {
             if (tx.isActive()) tx.rollback();
+            getServletContext().log("Account anonymization failed.", exception);
             request.getSession().setAttribute("error", "Impossible de supprimer le compte.");
             response.sendRedirect(request.getContextPath() + "/profile");
         } finally {

@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="fr" class="h-full">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Nouvelle réservation | CRMS</title><script src="https://cdn.tailwindcss.com"></script></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Nouvelle réservation | CRMS</title><link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css"><script src="https://cdn.tailwindcss.com"></script></head>
 <body class="min-h-full bg-slate-100 text-slate-800">
 <main class="mx-auto max-w-3xl px-6 py-12">
     <a href="${pageContext.request.contextPath}/vehicules" class="text-sm font-medium text-sky-600 hover:text-sky-700">← Retour aux véhicules</a>

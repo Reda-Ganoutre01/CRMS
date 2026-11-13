@@ -15,6 +15,19 @@
     </jsp-property-group>
   </jsp-config>
 
+  <error-page>
+    <error-code>404</error-code>
+    <location>/WEB-INF/views/error.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/WEB-INF/views/error.jsp</location>
+  </error-page>
+  <error-page>
+    <exception-type>java.lang.Throwable</exception-type>
+    <location>/WEB-INF/views/error.jsp</location>
+  </error-page>
+
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>

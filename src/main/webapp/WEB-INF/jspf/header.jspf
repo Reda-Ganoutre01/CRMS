@@ -27,9 +27,8 @@
                     <a href="${pageContext.request.contextPath}/accueil" class="${lien} ${active == 'accueil' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Tableau de bord</a>
                     <a href="${pageContext.request.contextPath}/vehicules" class="${lien} ${active == 'vehicules' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Véhicules</a>
                     <a href="${pageContext.request.contextPath}/clients" class="${lien} ${active == 'clients' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Clients</a>
-                    <a href="${pageContext.request.contextPath}/contrats" class="${lien} ${active == 'contrats' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Contrats</a>
+                    <a href="${pageContext.request.contextPath}/admin/contrats" class="${lien} ${active == 'contrats' or active == 'contrats-admin' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Contrats</a>
                     <a href="${pageContext.request.contextPath}/admin/reservations" class="${lien} ${active == 'reservations' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Réservations</a>
-                    <a href="${pageContext.request.contextPath}/admin/contrats" class="${lien} ${active == 'contrats-admin' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Gestion contrats</a>
                 </c:when>
 
                 <%-- Menu du client connecté --%>

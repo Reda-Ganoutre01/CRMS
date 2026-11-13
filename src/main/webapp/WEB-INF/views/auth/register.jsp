@@ -4,14 +4,14 @@
 <html lang="fr" class="h-full">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Inscription | CRMS</title><script src="https://cdn.tailwindcss.com"></script>
+    <title>Inscription | CRMS</title><link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css"><script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-full bg-slate-100 text-slate-800">
 <main class="flex min-h-screen items-center justify-center px-6 py-12">
     <section class="w-full max-w-2xl">
         <div class="mb-8 text-center"><p class="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">CRMS</p><h1 class="text-3xl font-bold">Créer un compte</h1><p class="mt-2 text-slate-500">Rejoignez votre espace client.</p></div>
         <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
-            <c:if test="${not empty param.error}"><p class="mb-5 rounded-lg border border-red-900/60 bg-red-950/50 px-4 py-3 text-sm text-red-300">${param.error}</p></c:if>
+            <c:if test="${not empty param.error}"><p class="mb-5 rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700"><c:out value="${param.error}"/></p></c:if>
             <form method="post" action="${pageContext.request.contextPath}/register" class="grid gap-5 sm:grid-cols-2">
                 <label class="block text-sm font-medium text-slate-700">Nom<input name="nom" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-800 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"></label>
                 <label class="block text-sm font-medium text-slate-700">Prénom<input name="prenom" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-800 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30"></label>

@@ -24,7 +24,7 @@
             <td><c:out value="${reservation.vehicule.libelle}"/></td>
             <td>${reservation.dateDebut} → ${reservation.dateFin}</td>
             <td><fmt:formatNumber value="${reservation.montantTotal}" pattern="#,##0.00"/> MAD</td>
-            <td><span class="badge info">${reservation.statut}</span></td>
+            <td><span class="badge info"><c:out value="${reservation.statut}"/></span></td>
             <td class="actions">
                 <c:if test="${reservation.statut == 'EN_ATTENTE'}">
                     <form method="post" action="${pageContext.request.contextPath}/admin/reservations/valider">
@@ -36,6 +36,13 @@
                     <form method="post" action="${pageContext.request.contextPath}/admin/contrats/demarrer">
                         <input type="hidden" name="reservationId" value="${reservation.id}">
                         <button class="btn small" type="submit">Démarrer contrat</button>
+                    </form>
+                </c:if>
+                <c:if test="${reservation.statut == 'EN_ATTENTE' || reservation.statut == 'CONFIRMEE'}">
+                    <form method="post" action="${pageContext.request.contextPath}/admin/reservations/annuler"
+                          onsubmit="return confirm('Annuler cette réservation ?');">
+                        <input type="hidden" name="reservationId" value="${reservation.id}">
+                        <button class="btn small danger" type="submit">Annuler</button>
                     </form>
                 </c:if>
             </td>
