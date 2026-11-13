@@ -1,4 +1,3 @@
-<%@ page pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Location de voitures</title>
     <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/images/favicon.png">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <%-- Tailwind CSS : chargé depuis Internet, rien à installer --%>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -21,37 +19,27 @@
             <img src="${pageContext.request.contextPath}/images/logo.png" alt="AutoLocation" class="h-10 w-auto rounded-lg">
         </a>
         <nav class="flex flex-wrap items-center gap-1">
-            <c:choose>
-                <%-- Menu de l'administrateur --%>
-                <c:when test="${sessionScope.authenticatedRole == 'ADMIN'}">
-                    <a href="${pageContext.request.contextPath}/accueil" class="${lien} ${active == 'accueil' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Tableau de bord</a>
-                    <a href="${pageContext.request.contextPath}/vehicules" class="${lien} ${active == 'vehicules' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Véhicules</a>
-                    <a href="${pageContext.request.contextPath}/clients" class="${lien} ${active == 'clients' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Clients</a>
-                    <a href="${pageContext.request.contextPath}/admin/contrats" class="${lien} ${active == 'contrats' or active == 'contrats-admin' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Contrats</a>
-                    <a href="${pageContext.request.contextPath}/admin/reservations" class="${lien} ${active == 'reservations' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Réservations</a>
-                </c:when>
+            <a href="${pageContext.request.contextPath}/vehicules" class="${lien} ${active == 'vehicules' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Véhicules</a>
 
-                <%-- Menu du client connecté --%>
-                <c:when test="${sessionScope.authenticatedRole == 'USER'}">
-                    <a href="${pageContext.request.contextPath}/vehicules" class="${lien} ${active == 'vehicules' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Véhicules</a>
-                    <a href="${pageContext.request.contextPath}/mes-reservations" class="${lien} ${active == 'reservations' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Mes réservations</a>
-                </c:when>
-            </c:choose>
+            <%-- Menu de l'administrateur --%>
+            <c:if test="${empty sessionScope.user or sessionScope.user.admin}">
+                <a href="${pageContext.request.contextPath}/accueil" class="${lien} ${active == 'accueil' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Tableau de bord</a>
+                <a href="${pageContext.request.contextPath}/clients" class="${lien} ${active == 'clients' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Clients</a>
+                <a href="${pageContext.request.contextPath}/contrats" class="${lien} ${active == 'contrats' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Contrats</a>
+                <a href="${pageContext.request.contextPath}/admin/reservations" class="${lien} ${active == 'reservations' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Réservations</a>
+                <a href="${pageContext.request.contextPath}/admin/contrats" class="${lien} ${active == 'contrats-admin' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Gestion contrats</a>
+            </c:if>
+
+            <%-- Menu du client connecté --%>
+            <c:if test="${not empty sessionScope.user and not sessionScope.user.admin}">
+                <a href="${pageContext.request.contextPath}/mes-commandes" class="${lien} ${active == 'commandes' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Mes commandes</a>
+            </c:if>
 
             <%-- Connexion / déconnexion --%>
             <c:choose>
-                <c:when test="${not empty sessionScope.authenticatedUserId}">
-                    <details class="relative">
-                        <summary class="flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">
-                            <span class="user-avatar">👤</span>
-                            <span>Mon compte</span>
-                            <span class="text-xs">▾</span>
-                        </summary>
-                        <div class="account-menu">
-                            <a href="${pageContext.request.contextPath}/profile">Profil</a>
-                            <a href="${pageContext.request.contextPath}/logout">Déconnexion</a>
-                        </div>
-                    </details>
+                <c:when test="${not empty sessionScope.user}">
+                    <span class="px-3 py-2 text-sm text-sky-300">👤 <c:out value="${sessionScope.user.nomComplet}"/></span>
+                    <a href="${pageContext.request.contextPath}/logout" class="${lien} text-slate-300">Déconnexion</a>
                 </c:when>
                 <c:otherwise>
                     <a href="${pageContext.request.contextPath}/login" class="${lien} ${active == 'login' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Connexion</a>
