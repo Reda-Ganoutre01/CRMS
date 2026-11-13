@@ -43,6 +43,7 @@ public class AuthenticationFilter implements Filter {
         return path.isEmpty()
                 || "/".equals(path)
                 || "/index.jsp".equals(path)
+                || "/accueil".equals(path)
                 || "/vehicules".equals(path)
                 || "/login".equals(path)
                 || "/register".equals(path)
