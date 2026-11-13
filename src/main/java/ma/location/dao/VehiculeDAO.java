@@ -7,7 +7,9 @@ import jakarta.persistence.EntityManager;
 import ma.location.model.StatutContrat;
 import ma.location.model.StatutReservation;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class VehiculeDAO {
 
@@ -69,6 +71,29 @@ public class VehiculeDAO {
         }
     }
 
+    public Set<Long> findIndisponiblesAujourdHui() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            LocalDate today = LocalDate.now();
+            return new HashSet<>(em.createQuery(
+                            "select distinct v.id from Vehicule v " +
+                                    "where exists (select r.id from Reservation r " +
+                                    "where r.vehicule.id = v.id " +
+                                    "and r.statut in (:enAttente, :confirmee) " +
+                                    "and r.dateDebut <= :today and r.dateFin > :today) " +
+                                    "or exists (select c.id from Contrat c " +
+                                    "where c.vehicule.id = v.id and c.statut = :actif " +
+                                    "and c.dateDebut <= :today and c.dateFin > :today)", Long.class)
+                    .setParameter("enAttente", StatutReservation.EN_ATTENTE)
+                    .setParameter("confirmee", StatutReservation.CONFIRMEE)
+                    .setParameter("actif", StatutContrat.ACTIF)
+                    .setParameter("today", today)
+                    .getResultList());
+        } finally {
+            em.close();
+        }
+    }
+
     public LocalDate findDateDisponibilite(Long vehiculeId) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -78,10 +103,12 @@ public class VehiculeDAO {
                 LocalDate reservationEnd = em.createQuery(
                                 "select max(r.dateFin) from Reservation r " +
                                         "where r.vehicule.id = :id " +
-                                        "and r.statut in (:enAttente, :confirmee)", LocalDate.class)
+                                "and r.statut in (:enAttente, :confirmee) " +
+                                "and r.dateFin >= :today", LocalDate.class)
                         .setParameter("id", vehiculeId)
                         .setParameter("enAttente", StatutReservation.EN_ATTENTE)
                         .setParameter("confirmee", StatutReservation.CONFIRMEE)
+                        .setParameter("today", LocalDate.now())
                         .getSingleResult();
                 LocalDate contractEnd = em.createQuery(
                                 "select max(c.dateFin) from Contrat c " +

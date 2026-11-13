@@ -3,6 +3,7 @@ package ma.location.servlet;
 import ma.location.dao.VehiculeDAO;
 import ma.location.model.Vehicule;
 import ma.location.service.ClientService;
+import ma.location.service.ContratService;
 import ma.location.util.ImageUtil;
 
 import jakarta.servlet.ServletException;
@@ -25,6 +26,7 @@ public class VehiculeServlet extends HttpServlet {
 
     private VehiculeDAO dao = new VehiculeDAO();
     private final ClientService clientService = new ClientService();
+    private final ContratService contratService = new ContratService();
 
 
     @Override
@@ -53,6 +55,7 @@ public class VehiculeServlet extends HttpServlet {
 
         } else {
             try {
+                contratService.cloturerContratsExpires();
                 boolean admin = clientService.hasRole(req, ma.location.model.Role.ADMIN);
                 String search = req.getParameter("search");
                 search = search == null ? null : search.trim();
@@ -65,6 +68,7 @@ public class VehiculeServlet extends HttpServlet {
                     vehicules = dao.findAll(search);
                 }
                 req.setAttribute("vehicules", vehicules);
+                req.setAttribute("indisponiblesAujourdHui", dao.findIndisponiblesAujourdHui());
                 Map<Long, LocalDate> datesDisponibilite = new LinkedHashMap<>();
                 for (Vehicule vehicule : vehicules) {
                     datesDisponibilite.put(vehicule.getId(), dao.findDateDisponibilite(vehicule.getId()));
@@ -74,6 +78,7 @@ public class VehiculeServlet extends HttpServlet {
                 req.setAttribute("error", exception.getMessage());
                 List<Vehicule> vehicules = dao.findAll();
                 req.setAttribute("vehicules", vehicules);
+                req.setAttribute("indisponiblesAujourdHui", dao.findIndisponiblesAujourdHui());
                 Map<Long, LocalDate> datesDisponibilite = new LinkedHashMap<>();
                 for (Vehicule vehicule : vehicules) {
                     datesDisponibilite.put(vehicule.getId(), dao.findDateDisponibilite(vehicule.getId()));

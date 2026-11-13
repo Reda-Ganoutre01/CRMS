@@ -17,6 +17,10 @@
             <p class="mt-2 text-slate-500">Connectez-vous à votre espace de location.</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+            <c:if test="${not empty sessionScope.message}">
+                <p class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"><c:out value="${sessionScope.message}"/></p>
+                <c:remove var="message" scope="session"/>
+            </c:if>
             <c:if test="${not empty param.error}">
                 <p class="mb-5 rounded-lg border border-red-900/60 bg-red-950/50 px-4 py-3 text-sm text-red-300">${param.error}</p>
             </c:if>

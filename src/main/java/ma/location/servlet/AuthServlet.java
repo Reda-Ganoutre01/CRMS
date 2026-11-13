@@ -55,6 +55,7 @@ public class AuthServlet extends HttpServlet {
                 return;
             }
             clientService.openSession(request, utilisateur);
+            request.getSession().setAttribute("message", "Connexion réussie.");
             String redirect = request.getParameter("redirect");
             if (redirect == null || !redirect.startsWith("/") || redirect.startsWith("//")) {
                 redirect = "/accueil";
@@ -113,6 +114,7 @@ public class AuthServlet extends HttpServlet {
             em.persist(client);
             tx.commit();
             clientService.openSession(request, client);
+            request.getSession().setAttribute("message", "Compte créé avec succès.");
             response.sendRedirect(request.getContextPath() + "/accueil");
         } catch (RuntimeException exception) {
             if (tx.isActive()) tx.rollback();
@@ -124,6 +126,7 @@ public class AuthServlet extends HttpServlet {
 
     private void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
         clientService.closeSession(request);
+        request.getSession(true).setAttribute("message", "Déconnexion réussie.");
         response.sendRedirect(request.getContextPath() + "/login");
     }
 

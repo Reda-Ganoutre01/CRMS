@@ -51,7 +51,7 @@
             <div class="p-4">
                 <div class="flex items-start justify-between gap-2">
                     <h2 class="text-lg font-semibold"><c:out value="${v.marque}"/> <c:out value="${v.modele}"/></h2>
-                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold ${v.disponible ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${v.disponible ? 'Disponible' : 'Loué actuellement'}</span>
+                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold ${indisponiblesAujourdHui.contains(v.id) ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}">${indisponiblesAujourdHui.contains(v.id) ? 'Indisponible actuellement' : 'Disponible'}</span>
                 </div>
 
                 <p class="mt-1 text-sm text-slate-500">
@@ -59,7 +59,7 @@
                 </p>
                 <p class="mt-2 text-sm font-medium text-slate-600">
                     <c:choose>
-                        <c:when test="${v.disponible}">Disponible maintenant</c:when>
+                        <c:when test="${not indisponiblesAujourdHui.contains(v.id)}">Disponible maintenant</c:when>
                         <c:otherwise>Disponible à partir du <c:out value="${datesDisponibilite[v.id]}"/></c:otherwise>
                     </c:choose>
                 </p>

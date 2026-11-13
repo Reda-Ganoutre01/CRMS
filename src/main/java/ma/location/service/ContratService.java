@@ -9,8 +9,35 @@ import ma.location.model.StatutReservation;
 import ma.location.model.StatutVehicule;
 import ma.location.model.Vehicule;
 import ma.location.util.JPAUtil;
+import java.time.LocalDate;
 
 public class ContratService {
+
+    public void cloturerContratsExpires() {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            var contrats = em.createQuery(
+                            "select c from Contrat c where c.statut = :actif and c.dateFin <= :today",
+                            Contrat.class)
+                    .setParameter("actif", StatutContrat.ACTIF)
+                    .setParameter("today", LocalDate.now())
+                    .getResultList();
+            for (Contrat contrat : contrats) {
+                contrat.setStatut(StatutContrat.TERMINE);
+                Vehicule vehicule = contrat.getVehicule();
+                vehicule.setDisponible(true);
+                vehicule.setStatut(StatutVehicule.DISPONIBLE);
+            }
+            tx.commit();
+        } catch (RuntimeException exception) {
+            if (tx.isActive()) tx.rollback();
+            throw exception;
+        } finally {
+            em.close();
+        }
+    }
 
     public double calculerSoldeFinal(Contrat contrat) {
         if (contrat == null) {

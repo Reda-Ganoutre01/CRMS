@@ -11,10 +11,6 @@
     </div>
 </div>
 
-<c:if test="${param.created != null}">
-    <div class="mb-4 rounded-lg bg-emerald-100 px-4 py-3 text-emerald-800">Réservation enregistrée.</div>
-</c:if>
-
 <table>
     <thead>
     <tr>

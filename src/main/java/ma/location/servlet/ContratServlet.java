@@ -31,6 +31,7 @@ public class ContratServlet extends HttpServlet {
         if ("/admin/contrats".equals(request.getServletPath())
                 && request.getPathInfo() == null) {
                 if (!requireAdmin(request, response)) return;
+            contratService.cloturerContratsExpires();
             request.setAttribute("derniersContrats", contratDAO.findRecent(100));
             request.getRequestDispatcher("/WEB-INF/views/contrats/liste.jsp").forward(request, response);
             return;
@@ -70,10 +71,12 @@ public class ContratServlet extends HttpServlet {
         try {
             if ("/demarrer".equals(request.getPathInfo())) {
                 contratService.creerDepuisReservation(requiredLong(request.getParameter("reservationId")));
-                response.sendRedirect(request.getContextPath() + "/accueil");
+                request.getSession().setAttribute("message", "Contrat démarré.");
+                response.sendRedirect(request.getContextPath() + "/admin/contrats");
             } else if ("/cloturer".equals(request.getPathInfo())) {
                 Contrat contrat = contratService.cloturer(
                         requiredLong(request.getParameter("contratId")));
+                request.getSession().setAttribute("message", "Contrat clôturé.");
                 response.sendRedirect(request.getContextPath() + "/admin/contrats/facture?id=" + contrat.getId());
             } else if ("/supprimer".equals(request.getPathInfo())) {
                 contratDAO.delete(requiredLong(request.getParameter("contratId")));
@@ -83,8 +86,9 @@ public class ContratServlet extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
         } catch (RuntimeException exception) {
-            response.sendRedirect(request.getContextPath() + "/accueil?error=" +
-                    java.net.URLEncoder.encode(exception.getMessage(), java.nio.charset.StandardCharsets.UTF_8));
+            request.getSession().setAttribute("error",
+                    exception.getMessage() == null ? "Action impossible." : exception.getMessage());
+            response.sendRedirect(request.getContextPath() + "/admin/contrats");
         }
     }
 

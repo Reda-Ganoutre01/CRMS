@@ -6,6 +6,7 @@ import ma.location.model.Client;
 import ma.location.model.Offre;
 import ma.location.model.Reservation;
 import ma.location.model.Role;
+import ma.location.model.StatutContrat;
 import ma.location.model.StatutReservation;
 import ma.location.model.Vehicule;
 import ma.location.model.Utilisateur;
@@ -19,6 +20,7 @@ public class ReservationService {
     public Reservation creer(Long clientId, Long vehiculeId, Long offreId,
                              LocalDate debut, LocalDate fin) {
         validatePeriod(debut, fin);
+        new ContratService().cloturerContratsExpires();
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -36,7 +38,8 @@ public class ReservationService {
             if (offreId != null && offre == null) {
                 throw new IllegalArgumentException("Offre introuvable.");
             }
-            if (!vehicule.isDisponible() || hasOverlappingReservation(em, vehiculeId, debut, fin)) {
+            if (hasOverlappingReservation(em, vehiculeId, debut, fin)
+                    || hasOverlappingContract(em, vehiculeId, debut, fin)) {
                 throw new IllegalStateException("Le véhicule n'est pas disponible pour cette période.");
             }
             if (offre != null && (debut.isBefore(offre.getDateDebut()) || fin.isAfter(offre.getDateFin()))) {
@@ -106,16 +109,30 @@ public class ReservationService {
                                                LocalDate debut, LocalDate fin, Long excludedId) {
         String query = "select count(r) from Reservation r " +
                 "where r.vehicule.id = :vehiculeId " +
-                "and r.statut <> :annulee " +
+                "and r.statut in (:enAttente, :confirmee) " +
                 "and r.dateDebut < :fin and r.dateFin > :debut";
         if (excludedId != null) query += " and r.id <> :excludedId";
         var typedQuery = em.createQuery(query, Long.class)
                 .setParameter("vehiculeId", vehiculeId)
-                .setParameter("annulee", StatutReservation.ANNULEE)
+                .setParameter("enAttente", StatutReservation.EN_ATTENTE)
+                .setParameter("confirmee", StatutReservation.CONFIRMEE)
                 .setParameter("debut", debut)
                 .setParameter("fin", fin);
         if (excludedId != null) typedQuery.setParameter("excludedId", excludedId);
         return typedQuery.getSingleResult() > 0;
+    }
+
+    private boolean hasOverlappingContract(EntityManager em, Long vehiculeId,
+                                           LocalDate debut, LocalDate fin) {
+        return em.createQuery(
+                        "select count(c) from Contrat c where c.vehicule.id = :vehiculeId " +
+                                "and c.statut = :actif " +
+                                "and c.dateDebut < :fin and c.dateFin > :debut", Long.class)
+                .setParameter("vehiculeId", vehiculeId)
+                .setParameter("actif", StatutContrat.ACTIF)
+                .setParameter("debut", debut)
+                .setParameter("fin", fin)
+                .getSingleResult() > 0;
     }
 
     private void validatePeriod(LocalDate debut, LocalDate fin) {

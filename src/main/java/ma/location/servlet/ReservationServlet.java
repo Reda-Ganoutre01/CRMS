@@ -102,7 +102,8 @@ public class ReservationServlet extends HttpServlet {
             Reservation reservation = reservationService.creer(clientId, vehicleId, offerId,
                     LocalDate.parse(request.getParameter("dateDebut")),
                     LocalDate.parse(request.getParameter("dateFin")));
-            response.sendRedirect(request.getContextPath() + "/mes-reservations?created=" + reservation.getId());
+            request.getSession().setAttribute("message", "Réservation envoyée avec succès.");
+            response.sendRedirect(request.getContextPath() + "/mes-reservations");
         } catch (RuntimeException exception) {
             showReservationFormWithError(request, response, exception.getMessage());
         }
@@ -145,9 +146,12 @@ public class ReservationServlet extends HttpServlet {
             Long reservationId = requiredLong(request.getParameter("reservationId"), "Réservation requise.");
             Utilisateur admin = currentUser(request);
             reservationService.confirmer(reservationId, admin);
-            response.sendRedirect(request.getContextPath() + "/accueil?validated=" + reservationId);
+            request.getSession().setAttribute("message", "Réservation validée.");
+            response.sendRedirect(request.getContextPath() + "/admin/reservations");
         } catch (RuntimeException exception) {
-            redirectError(response, request, "/accueil", exception.getMessage());
+            request.getSession().setAttribute("error",
+                    exception.getMessage() == null ? "Validation impossible." : exception.getMessage());
+            response.sendRedirect(request.getContextPath() + "/admin/reservations");
         }
     }
 
