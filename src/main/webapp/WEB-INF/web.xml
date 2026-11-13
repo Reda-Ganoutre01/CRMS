@@ -6,6 +6,10 @@
 
   <display-name>Gestion de location de voitures</display-name>
 
+  <listener>
+    <listener-class>ma.location.util.AppListener</listener-class>
+  </listener>
+
   <jsp-config>
     <jsp-property-group>
       <url-pattern>*.jsp</url-pattern>

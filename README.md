@@ -226,6 +226,7 @@ git checkout -b feature/youssef-clients-contrats
 - [X] Créer l'entité `Offre.java` avec `titre`, `description`, `pourcentageRemise`, `dateDebut`, `dateFin`.
 - [X] Créer `GenericDAO.java` pour factoriser toutes les opérations CRUD et transactions JPA.
 - [X] Créer `VehiculeDAO.java` avec les requêtes `findDisponibles()` et `countDisponibles()`.
+- [X] Implémenter `DataInitializer.java` avec initialisation automatique au démarrage de Tomcat (`AppListener`, insertion automatique des véhicules avec photos, comptes de test et offre).
 - [ ] Aligner `Vehicule.java` avec le diagramme UML :
   - Ajouter le champ `categorie` (citadine, berline, SUV, etc.).
   - Harmoniser `prixParJour` en type `Double`.
