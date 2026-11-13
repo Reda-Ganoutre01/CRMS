@@ -54,13 +54,13 @@ public final class DataInitializer {
             if (vehiclesCount == 0) {
                 LOGGER.info("[CRMS DataInitializer] Insertion du parc automobile avec photos...");
                 em.persist(vehicle("Dacia", "Logan", "12345-A-6", 2024, "DIESEL", 25000, 250.0,
-                        "images/cars/dacia-logan.jpg", true, StatutVehicule.DISPONIBLE));
+                        "dacia-logan.jpg", true, StatutVehicule.DISPONIBLE));
 
                 em.persist(vehicle("Renault", "Clio", "23456-B-1", 2023, "ESSENCE", 18000, 350.0,
-                        "images/cars/renault-clio.jpg", false, StatutVehicule.LOUE));
+                        "renault-clio.jpg", false, StatutVehicule.LOUE));
 
                 em.persist(vehicle("Peugeot", "208", "34567-D-7", 2024, "ESSENCE", 12000, 330.0,
-                        "images/cars/peugeot-208.jpg", true, StatutVehicule.DISPONIBLE));
+                        "peugeot-208.jpg", true, StatutVehicule.DISPONIBLE));
 
                 LOGGER.info("[CRMS DataInitializer] 3 véhicules insérés avec leurs photos.");
             } else {
@@ -72,11 +72,11 @@ public final class DataInitializer {
                 for (Vehicule v : vehiculesSansImage) {
                     String modele = (v.getModele() != null) ? v.getModele().toLowerCase() : "";
                     if (modele.contains("clio")) {
-                        v.setImage("images/cars/renault-clio.jpg");
+                        v.setImage("renault-clio.jpg");
                     } else if (modele.contains("208")) {
-                        v.setImage("images/cars/peugeot-208.jpg");
+                        v.setImage("peugeot-208.jpg");
                     } else {
-                        v.setImage("images/cars/dacia-logan.jpg");
+                        v.setImage("dacia-logan.jpg");
                     }
                     em.merge(v);
                 }

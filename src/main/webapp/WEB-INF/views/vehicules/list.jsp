@@ -20,7 +20,7 @@
             <%-- Photo (ou une image par défaut s'il n'y en a pas) --%>
             <c:choose>
                 <c:when test="${not empty v.image}">
-                    <img class="h-44 w-full object-cover" src="${pageContext.request.contextPath}/images/${v.image}"
+                    <img class="h-44 w-full object-cover" src="${pageContext.request.contextPath}/images/cars/${v.image}"
                          alt="<c:out value='${v.marque} ${v.modele}'/>">
                 </c:when>
                 <c:otherwise>

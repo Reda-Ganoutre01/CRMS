@@ -55,7 +55,8 @@ public class VehiculeServlet extends HttpServlet {
                 Vehicule aSupprimer = dao.findById(id);
                 dao.delete(id);
                 if (aSupprimer != null) {
-                    ImageUtil.supprimer(aSupprimer.getImage()); // on supprime aussi sa photo
+                    String dossierPhotos = getServletContext().getRealPath("/images/cars");
+                    ImageUtil.supprimer(aSupprimer.getImage(), dossierPhotos); // on supprime aussi sa photo
                 }
                 req.getSession().setAttribute("message", "Véhicule supprimé.");
             } catch (Exception e) {
@@ -85,14 +86,16 @@ public class VehiculeServlet extends HttpServlet {
             Part photo = req.getPart("image");
             boolean nouvellePhoto = photo != null && photo.getSize() > 0;
             String anciennePhoto = v.getImage();
+            // Dossier réel de la webapp pour les photos (compatible mode exploded et WAR)
+            String dossierPhotos = getServletContext().getRealPath("/images/cars");
             if (nouvellePhoto) {
-                v.setImage(ImageUtil.sauvegarder(photo));
+                v.setImage(ImageUtil.sauvegarder(photo, dossierPhotos));
             }
 
             dao.save(v);
 
             if (nouvellePhoto) {
-                ImageUtil.supprimer(anciennePhoto); // l'ancienne photo n'est plus utile
+                ImageUtil.supprimer(anciennePhoto, dossierPhotos); // l'ancienne photo n'est plus utile
             }
             req.getSession().setAttribute("message", "Véhicule enregistré avec succès.");
             resp.sendRedirect(req.getContextPath() + "/vehicules");
