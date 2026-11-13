@@ -29,7 +29,10 @@ public class Client extends Utilisateur {
     @OneToMany(mappedBy = "client")
     private List<Reservation> reservations = new ArrayList<>();
 
+
     public String getNomComplet() {
-        return (this.getPrenom() != null ? this.getPrenom() : "") + " " + (this.getNom() != null ? this.getNom() : "");
+        return this.getPrenom() + " " + this.getNom();
     }
 }
+
+

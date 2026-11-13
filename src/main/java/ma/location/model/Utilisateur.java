@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "utilisateurs")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Utilisateur {
 
     @Id
@@ -37,12 +38,4 @@ public class Utilisateur {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role = Role.USER;
-
-    public boolean isAdmin() {
-        return Role.ADMIN.equals(this.role);
-    }
-
-    public String getNomComplet() {
-        return (prenom != null ? prenom : "") + " " + (nom != null ? nom : "");
-    }
 }
