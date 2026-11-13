@@ -53,7 +53,6 @@ public class ContratService {
                     reservation.getDateDebut(),
                     reservation.getDateFin(),
                     reservation.getMontantTotal());
-            contrat.setKmDepart(vehicule.getKilometrage());
             vehicule.setDisponible(false);
             vehicule.setStatut(StatutVehicule.LOUE);
             reservation.setStatut(StatutReservation.TERMINEE);
@@ -68,11 +67,7 @@ public class ContratService {
         }
     }
 
-    public Contrat cloturer(Long contratId, Integer kmRetour) {
-        if (kmRetour == null || kmRetour < 0) {
-            throw new IllegalArgumentException("Le kilométrage de retour est invalide.");
-        }
-
+    public Contrat cloturer(Long contratId) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -84,14 +79,9 @@ public class ContratService {
             if (contrat.getStatut() != StatutContrat.ACTIF) {
                 throw new IllegalStateException("Le contrat est déjà clôturé.");
             }
-            if (contrat.getKmDepart() == null || kmRetour < contrat.getKmDepart()) {
-                throw new IllegalArgumentException("Le kilométrage de retour doit être supérieur ou égal au départ.");
-            }
-            contrat.setKmRetour(kmRetour);
             contrat.setMontantTotal(calculerSoldeFinal(contrat));
             contrat.setStatut(StatutContrat.TERMINE);
             Vehicule vehicule = contrat.getVehicule();
-            vehicule.setKilometrage(kmRetour);
             vehicule.setDisponible(true);
             vehicule.setStatut(StatutVehicule.DISPONIBLE);
             tx.commit();

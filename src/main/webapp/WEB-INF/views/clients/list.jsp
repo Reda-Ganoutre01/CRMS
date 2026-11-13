@@ -19,6 +19,7 @@
         <th>Téléphone</th>
         <th>Adresse</th>
         <th>Permis</th>
+        <th>Actions</th>
     </tr>
     </thead>
     <tbody>
@@ -30,10 +31,17 @@
             <td><c:out value="${client.telephone}"/></td>
             <td><c:out value="${client.adresse}"/></td>
             <td><c:out value="${client.numeroPermis}"/></td>
+            <td class="actions">
+                <form method="post" action="${pageContext.request.contextPath}/clients/supprimer"
+                      onsubmit="return confirm('Supprimer ce client ?');">
+                    <input type="hidden" name="clientId" value="${client.id}">
+                    <button class="btn small danger" type="submit">Supprimer</button>
+                </form>
+            </td>
         </tr>
     </c:forEach>
     <c:if test="${empty clients}">
-        <tr><td colspan="6" class="empty">Aucun client enregistré.</td></tr>
+        <tr><td colspan="7" class="empty">Aucun client enregistré.</td></tr>
     </c:if>
     </tbody>
 </table>

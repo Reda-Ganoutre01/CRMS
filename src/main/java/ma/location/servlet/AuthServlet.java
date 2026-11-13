@@ -55,7 +55,11 @@ public class AuthServlet extends HttpServlet {
                 return;
             }
             clientService.openSession(request, utilisateur);
-            response.sendRedirect(request.getContextPath() + "/accueil");
+            String redirect = request.getParameter("redirect");
+            if (redirect == null || !redirect.startsWith("/") || redirect.startsWith("//")) {
+                redirect = "/accueil";
+            }
+            response.sendRedirect(request.getContextPath() + redirect);
         } finally {
             em.close();
         }

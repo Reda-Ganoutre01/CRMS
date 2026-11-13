@@ -38,6 +38,11 @@
                         <button class="btn small" type="submit">Démarrer contrat</button>
                     </form>
                 </c:if>
+                <form method="post" action="${pageContext.request.contextPath}/admin/reservations/supprimer"
+                      onsubmit="return confirm('Supprimer cette réservation ?');">
+                    <input type="hidden" name="reservationId" value="${reservation.id}">
+                    <button class="btn small danger" type="submit">Supprimer</button>
+                </form>
             </td>
         </tr>
     </c:forEach>

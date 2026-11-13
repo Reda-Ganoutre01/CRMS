@@ -1,3 +1,3 @@
 <%
-    response.sendRedirect(request.getContextPath() + "/accueil");
+    response.sendRedirect(request.getContextPath() + "/vehicules");
 %>

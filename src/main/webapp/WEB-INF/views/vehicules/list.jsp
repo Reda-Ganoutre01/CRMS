@@ -12,6 +12,21 @@
     </c:if>
 </div>
 
+<form method="get" action="${pageContext.request.contextPath}/vehicules" class="mb-6 rounded-xl bg-white p-4 shadow">
+    <div class="flex flex-wrap items-end gap-3">
+        <label class="text-sm text-slate-600">Rechercher
+            <input type="search" name="search" value="${param.search}" placeholder="Marque, modèle..." class="mt-1 block rounded-lg border border-slate-300 px-3 py-2">
+        </label>
+        <c:if test="${sessionScope.authenticatedRole != 'ADMIN'}">
+            <label class="text-sm text-slate-600">Disponible à partir du
+                <input type="date" name="dateDebut" value="${param.dateDebut}" class="mt-1 block rounded-lg border border-slate-300 px-3 py-2">
+            </label>
+        </c:if>
+        <button class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700" type="submit">Filtrer</button>
+        <a class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50" href="${pageContext.request.contextPath}/vehicules">Réinitialiser</a>
+    </div>
+</form>
+
 <%-- Une carte par véhicule --%>
 <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
     <c:forEach var="v" items="${vehicules}">
@@ -36,11 +51,17 @@
             <div class="p-4">
                 <div class="flex items-start justify-between gap-2">
                     <h2 class="text-lg font-semibold"><c:out value="${v.marque}"/> <c:out value="${v.modele}"/></h2>
-                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold ${v.disponible ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${v.disponible ? 'Disponible' : 'Loué'}</span>
+                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold ${v.disponible ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${v.disponible ? 'Disponible' : 'Loué actuellement'}</span>
                 </div>
 
                 <p class="mt-1 text-sm text-slate-500">
                     ${v.annee} · <c:out value="${v.carburant}"/> · <fmt:formatNumber value="${v.kilometrage}" pattern="#,##0"/> km
+                </p>
+                <p class="mt-2 text-sm font-medium text-slate-600">
+                    <c:choose>
+                        <c:when test="${v.disponible}">Disponible maintenant</c:when>
+                        <c:otherwise>Disponible à partir du <c:out value="${datesDisponibilite[v.id]}"/></c:otherwise>
+                    </c:choose>
                 </p>
 
                 <%-- L'immatriculation est visible seulement par l'administrateur --%>
@@ -66,8 +87,8 @@
                             </form>
                         </c:when>
                         <%-- Visiteur ou client : réserver (le login est demandé si besoin) --%>
-                        <c:when test="${v.disponible}">
-                            <a class="inline-flex items-center rounded-lg font-medium text-white transition px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700" href="${pageContext.request.contextPath}/reservations/nouvelle?vehiculeId=${v.id}">Réserver</a>
+                        <c:when test="${sessionScope.authenticatedRole != 'ADMIN'}">
+                            <a class="inline-flex items-center rounded-lg font-medium text-white transition px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700" href="${pageContext.request.contextPath}/reservations/nouvelle?vehiculeId=${v.id}&dateDebut=${param.dateDebut}">Réserver</a>
                         </c:when>
                     </c:choose>
                 </div>

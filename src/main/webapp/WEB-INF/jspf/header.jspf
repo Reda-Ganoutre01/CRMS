@@ -29,7 +29,6 @@
                     <a href="${pageContext.request.contextPath}/clients" class="${lien} ${active == 'clients' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Clients</a>
                     <a href="${pageContext.request.contextPath}/contrats" class="${lien} ${active == 'contrats' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Contrats</a>
                     <a href="${pageContext.request.contextPath}/admin/reservations" class="${lien} ${active == 'reservations' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Réservations</a>
-                    <a href="${pageContext.request.contextPath}/admin/contrats" class="${lien} ${active == 'contrats-admin' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Gestion contrats</a>
                 </c:when>
 
                 <%-- Menu du client connecté --%>
@@ -55,6 +54,8 @@
                     </details>
                 </c:when>
                 <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/vehicules" class="${lien} text-slate-300">Véhicules</a>
+                    <a href="${pageContext.request.contextPath}/mes-reservations" class="${lien} text-slate-300">Mes réservations</a>
                     <a href="${pageContext.request.contextPath}/login" class="${lien} ${active == 'login' ? 'bg-slate-700 text-white' : 'text-slate-300'}">Connexion</a>
                     <a href="${pageContext.request.contextPath}/register" class="rounded-md bg-sky-600 px-3 py-2 text-sm text-white hover:bg-sky-700">Inscription</a>
                 </c:otherwise>

@@ -13,6 +13,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @WebServlet("/vehicules")
@@ -25,28 +29,57 @@ public class VehiculeServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (!clientService.isAuthenticated(req)) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return;
-        }
-
         String action = req.getParameter("action");
 
         if ("new".equals(action)) {
+            if (!clientService.hasRole(req, ma.location.model.Role.ADMIN)) {
+                resp.sendRedirect(req.getContextPath() + "/login");
+                return;
+            }
             // Formulaire vide pour ajouter
 
             req.setAttribute("vehicule", new Vehicule());
             req.getRequestDispatcher("/WEB-INF/views/vehicules/form.jsp").forward(req, resp);
 
         } else if ("edit".equals(action)) {
+            if (!clientService.hasRole(req, ma.location.model.Role.ADMIN)) {
+                resp.sendRedirect(req.getContextPath() + "/login");
+                return;
+            }
             // Formulaire rempli pour modifier
             Long id = Long.parseLong(req.getParameter("id"));
             req.setAttribute("vehicule", dao.findById(id));
             req.getRequestDispatcher("/WEB-INF/views/vehicules/form.jsp").forward(req, resp);
 
         } else {
-
-            req.setAttribute("vehicules", dao.findAll());
+            try {
+                boolean admin = clientService.hasRole(req, ma.location.model.Role.ADMIN);
+                String search = req.getParameter("search");
+                search = search == null ? null : search.trim();
+                String dateDebut = req.getParameter("dateDebut");
+                List<Vehicule> vehicules;
+                if (!admin && dateDebut != null && !dateDebut.isBlank()) {
+                    LocalDate debut = LocalDate.parse(dateDebut);
+                    vehicules = dao.findDisponiblesEntre(debut, search);
+                } else {
+                    vehicules = dao.findAll(search);
+                }
+                req.setAttribute("vehicules", vehicules);
+                Map<Long, LocalDate> datesDisponibilite = new LinkedHashMap<>();
+                for (Vehicule vehicule : vehicules) {
+                    datesDisponibilite.put(vehicule.getId(), dao.findDateDisponibilite(vehicule.getId()));
+                }
+                req.setAttribute("datesDisponibilite", datesDisponibilite);
+            } catch (RuntimeException exception) {
+                req.setAttribute("error", exception.getMessage());
+                List<Vehicule> vehicules = dao.findAll();
+                req.setAttribute("vehicules", vehicules);
+                Map<Long, LocalDate> datesDisponibilite = new LinkedHashMap<>();
+                for (Vehicule vehicule : vehicules) {
+                    datesDisponibilite.put(vehicule.getId(), dao.findDateDisponibilite(vehicule.getId()));
+                }
+                req.setAttribute("datesDisponibilite", datesDisponibilite);
+            }
             req.getRequestDispatcher("/WEB-INF/views/vehicules/list.jsp").forward(req, resp);
         }
     }
@@ -54,7 +87,7 @@ public class VehiculeServlet extends HttpServlet {
     // (enregistrer ou supprimer)
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (!clientService.isAuthenticated(req)) {
+        if (!clientService.hasRole(req, ma.location.model.Role.ADMIN)) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }

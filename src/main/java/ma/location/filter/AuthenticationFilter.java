@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import ma.location.service.ClientService;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @WebFilter("/*")
 public class AuthenticationFilter implements Filter {
@@ -29,11 +31,20 @@ public class AuthenticationFilter implements Filter {
             return;
         }
 
-        httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
+        String returnPath = path;
+        if (httpRequest.getQueryString() != null) {
+            returnPath += "?" + httpRequest.getQueryString();
+        }
+        httpResponse.sendRedirect(httpRequest.getContextPath() + "/login?redirect=" +
+                URLEncoder.encode(returnPath, StandardCharsets.UTF_8));
     }
 
     private boolean isPublic(String path) {
-        return "/login".equals(path)
+        return path.isEmpty()
+                || "/".equals(path)
+                || "/index.jsp".equals(path)
+                || "/vehicules".equals(path)
+                || "/login".equals(path)
                 || "/register".equals(path)
                 || "/logout".equals(path)
                 || path.startsWith("/css/")

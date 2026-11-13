@@ -73,9 +73,12 @@ public class ContratServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/accueil");
             } else if ("/cloturer".equals(request.getPathInfo())) {
                 Contrat contrat = contratService.cloturer(
-                        requiredLong(request.getParameter("contratId")),
-                        Integer.valueOf(request.getParameter("kmRetour")));
+                        requiredLong(request.getParameter("contratId")));
                 response.sendRedirect(request.getContextPath() + "/admin/contrats/facture?id=" + contrat.getId());
+            } else if ("/supprimer".equals(request.getPathInfo())) {
+                contratDAO.delete(requiredLong(request.getParameter("contratId")));
+                request.getSession().setAttribute("message", "Contrat supprimé.");
+                response.sendRedirect(request.getContextPath() + "/admin/contrats");
             } else {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
             }

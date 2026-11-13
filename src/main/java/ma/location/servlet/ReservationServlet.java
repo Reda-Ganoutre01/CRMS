@@ -18,9 +18,11 @@ import ma.location.util.JPAUtil;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.net.URLEncoder;
 import java.util.List;
 
-@WebServlet({"/reservations/*", "/mes-reservations", "/admin/reservations", "/admin/reservations/valider"})
+@WebServlet({"/reservations/*", "/mes-reservations", "/admin/reservations",
+        "/admin/reservations/valider", "/admin/reservations/supprimer"})
 public class ReservationServlet extends HttpServlet {
     private final ClientService clientService = new ClientService();
     private final ReservationService reservationService = new ReservationService();
@@ -76,6 +78,10 @@ public class ReservationServlet extends HttpServlet {
             throws ServletException, IOException {
         if ("/admin/reservations/valider".equals(request.getServletPath())) {
             validateReservation(request, response);
+            return;
+        }
+        if ("/admin/reservations/supprimer".equals(request.getServletPath())) {
+            deleteReservation(request, response);
             return;
         }
         if ("/reservations".equals(request.getServletPath())
@@ -145,6 +151,17 @@ public class ReservationServlet extends HttpServlet {
         }
     }
 
+    private void deleteReservation(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!requireAdmin(request, response)) return;
+        try {
+            new ReservationDAO().delete(requiredLong(request.getParameter("reservationId"), "Réservation requise."));
+            request.getSession().setAttribute("message", "Réservation supprimée.");
+        } catch (RuntimeException exception) {
+            request.getSession().setAttribute("error", "Suppression impossible pour cette réservation.");
+        }
+        response.sendRedirect(request.getContextPath() + "/admin/reservations");
+    }
+
     private Utilisateur currentUser(HttpServletRequest request) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -192,8 +209,14 @@ public class ReservationServlet extends HttpServlet {
                     && clientService.hasRole(request, ma.location.model.Role.ADMIN)
                     ? "/accueil"
                     : "/login";
-            response.sendRedirect(request.getContextPath() + target + "?error=" +
-                    java.net.URLEncoder.encode(exception.getMessage(), java.nio.charset.StandardCharsets.UTF_8));
+            if ("/login".equals(target)) {
+                String returnPath = request.getRequestURI().substring(request.getContextPath().length());
+                if (request.getQueryString() != null) returnPath += "?" + request.getQueryString();
+                target += "?redirect=" + URLEncoder.encode(returnPath, java.nio.charset.StandardCharsets.UTF_8);
+            }
+            response.sendRedirect(request.getContextPath() + target +
+                    (target.contains("?") ? "&" : "?") + "error=" +
+                    URLEncoder.encode(exception.getMessage(), java.nio.charset.StandardCharsets.UTF_8));
             return false;
         }
     }

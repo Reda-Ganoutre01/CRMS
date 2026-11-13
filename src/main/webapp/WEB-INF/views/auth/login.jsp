@@ -24,6 +24,7 @@
                 <p class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">Votre compte a été supprimé. Vos contrats et réservations ont été conservés.</p>
             </c:if>
             <form method="post" action="${pageContext.request.contextPath}/login" class="space-y-5">
+                <input type="hidden" name="redirect" value="<c:out value='${param.redirect}'/>">
                 <label class="block text-sm font-medium text-slate-700">Email
                     <input type="email" name="email" required class="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30">
                 </label>
