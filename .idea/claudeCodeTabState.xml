@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ClaudeCodeTabState">
+    <option name="tabSessions">
+      <map>
+        <entry key="0">
+          <value>
+            <TabSessionState>
+              <option name="projectPath" value="C:\Users\youss\OneDrive\Documents\work\tps\tp-java\TpJEE\CRMS" />
+              <option name="provider" value="claude" />
+              <option name="cwd" value="C:\Users\youss\OneDrive\Documents\work\tps\tp-java\TpJEE\CRMS" />
+              <option name="model" value="claude-sonnet-5" />
+              <option name="permissionMode" value="default" />
+              <option name="claudeSupplierId" value="__session_supplier_unavailable__" />
+              <option name="codexSupplierId" value="__session_supplier_unavailable__" />
+              <option name="ompApprovalMode" value="" />
+            </TabSessionState>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
